@@ -1,0 +1,17 @@
+[package]
+name = "aoc-solver"
+version = "0.1.0"
+edition = "2021"
+authors = ["quomatz <quomatz@outlook.com>"]
+
+[lib]
+name = "aoc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "aoc-runner"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
