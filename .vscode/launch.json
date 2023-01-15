@@ -5,10 +5,10 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/target/debug/AoC2022.exe",
+            "program": "${workspaceRoot}/target/debug/aoc-runner.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceRoot}",
             "environment": [],
             "console": "externalTerminal"
         }
