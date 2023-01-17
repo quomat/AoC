@@ -1,5 +1,8 @@
-use aoc::day0::Day;
+use aoc::day0::*;
+use aoc::year2022::*;
 
+const INPUT_FILE_NAME: &str = "input.txt";
 fn main() {
-    println!("{}",aoc::year2022::day3::Day3::solve_input2());
+    let result = Day4::solve_input2(INPUT_FILE_NAME);
+    println!("{}", result);
 }
