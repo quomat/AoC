@@ -1,10 +1,12 @@
+#![feature(let_chains)]
+
 pub mod day0;
 
 pub mod year2022;
 
 #[cfg(test)]
 mod tests {
-    const TESTS_FILE_NAME: &str = "test.txt";
+    const TESTS_FILE_NAME: &str = "test";
     use crate::{day0::Day, year2022::*};
 
     #[test]
@@ -54,5 +56,30 @@ mod tests {
         let result = Day4::solve_input2(TESTS_FILE_NAME);
 
         assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn test_day5_1() {
+        let result = Day5::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, "CMZ");
+    }
+    #[test]
+    fn test_day5_2() {
+        let result = Day5::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, "MCD");
+    }
+    #[test]
+    fn test_day6_1() {
+        let result = Day6::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, 7);
+    }
+    #[test]
+    fn test_day6_2() {
+        let result = Day6::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, 19);
     }
 }
