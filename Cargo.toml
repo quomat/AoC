@@ -12,6 +12,10 @@ path = "src/lib.rs"
 name = "aoc-runner"
 path = "src/main.rs"
 
+[[bin]]
+name = "aoc-playground"
+path = "src/playground.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

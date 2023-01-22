@@ -4,6 +4,8 @@ pub mod day0;
 
 pub mod year2022;
 
+pub mod structures;
+
 #[cfg(test)]
 mod tests {
     const TESTS_FILE_NAME: &str = "test";
@@ -81,5 +83,17 @@ mod tests {
         let result = Day6::solve_input2(TESTS_FILE_NAME);
 
         assert_eq!(result, 19);
+    }
+    #[test]
+    fn test_day7_1() {
+        let result = Day7::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, 95437);
+    }
+    #[test]
+    fn test_day7_2() {
+        let result = Day7::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, 24933642);
     }
 }
