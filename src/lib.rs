@@ -96,4 +96,16 @@ mod tests {
 
         assert_eq!(result, 24933642);
     }
+    #[test]
+    fn test_day8_1() {
+        let result = Day8::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, 21);
+    }
+    #[test]
+    fn test_day8_2() {
+        let result = Day8::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, 8);
+    }
 }
