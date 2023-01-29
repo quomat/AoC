@@ -1,9 +1,7 @@
 use std::{
-    collections::{HashMap, HashSet},
-    default,
+    collections::{HashSet},
     error::Error,
     fmt::Display,
-    num::ParseIntError,
     str::FromStr,
 };
 
@@ -64,7 +62,7 @@ impl FromStr for Command {
         Ok(Command { dir: d, step: s })
     }
 }
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Default)]
 pub struct Position {
     x: i32,
     y: i32,
@@ -82,13 +80,50 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
         let mut visited = HashSet::new();
         visited.insert(tail.clone());
         
-        dbg!(&input);
 
         for command in input {
             update_head(&mut head, command);
-            update_tail(&mut tail, &head, &mut visited);
+            update_tail(&mut tail, &head, Some(&mut visited));
         }
 
+        visited.len()
+    }
+    
+    fn solve2(input: Vec<Command>) -> usize {
+        const N : usize = 10;
+        let mut rope = [Position::default();N];
+        
+        let mut visited = HashSet::new();
+        visited.insert(rope[N-1].clone());
+        for mut command in input {
+            while command.step > 0
+            {
+                update_head1(&mut rope[0], &command);
+                command.step -= 1;
+                for i in 0..N-2
+                {
+                    if let Ok([a,b]) = rope.get_many_mut([i+1,i])
+                    {
+                         update_tail(a, b, None);
+                    }
+                   
+                }
+                if let Ok([a,b]) = rope.get_many_mut([N-1,N-2])
+                    {
+                         update_tail(a, b, Some(&mut visited));
+                    }
+            }
+            
+            
+                        
+            // buffer[(rope[0].x+500 )as usize][(rope[0].y + 500) as usize] = 'H';
+            // for i in 1..N-1
+            // {
+            //     buffer[(rope[i].x + 500) as usize][(rope[i].y + 500) as usize] = char::from_u32(i as u32).unwrap();
+            // }
+            // println!("{}",buffer.iter().map(|v| v.iter().collect::<String>()).collect::<Vec<String>>().join("\n"));
+        }
+        
         visited.len()
     }
 
@@ -108,14 +143,22 @@ fn update_head(h: &mut Position, c: Command) {
         Direction::Left => h.x -= c.step,
         Direction::Up => h.y += c.step,
     }
-    dbg!(&h);
 }
 
-fn update_tail(t: &mut Position, h: &Position, set: &mut HashSet<Position>) {
+fn update_head1(h: &mut Position, c: &Command) {
+    match c.dir {
+        Direction::Right => h.x += 1,
+        Direction::Down => h.y -= 1,
+        Direction::Left => h.x -= 1,
+        Direction::Up => h.y += 1,
+    }
+}
+
+fn update_tail(t: &mut Position, h: &Position, mut o_set: Option<&mut HashSet<Position>>) {
     loop {
         let x_delta = h.x - t.x;
         let y_delta = h.y - t.y;
-        if x_delta == 0 || y_delta == 0 {
+        if x_delta.abs() <= 1 && y_delta.abs() <= 1 {
             break;
         }
 
@@ -123,7 +166,11 @@ fn update_tail(t: &mut Position, h: &Position, set: &mut HashSet<Position>) {
         let y_set = y_delta.signum();
         t.x += x_set;
         t.y += y_set;
-        dbg!(&t);
-        set.insert(t.clone());
+        
+        if let Some(ref mut set) = o_set
+        {
+            set.insert(t.clone());
+        }
+        
     }
 }

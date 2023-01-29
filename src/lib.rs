@@ -1,4 +1,5 @@
 #![feature(let_chains)]
+#![feature(get_many_mut)]
 
 pub mod day0;
 
@@ -9,6 +10,7 @@ pub mod structures;
 #[cfg(test)]
 mod tests {
     const TESTS_FILE_NAME: &str = "test";
+    const TESTS_ADDITIONAL_FILE_NAME: &str = "test2";
     use crate::{day0::Day, year2022::*};
 
     #[test]
@@ -114,10 +116,26 @@ mod tests {
 
         assert_eq!(result, 13);
     }
-    // #[test]
-    // fn test_day9_2() {
-    //     let result = Day9::solve_input2(TESTS_FILE_NAME);
+    #[test]
+    fn test_day9_2() {
+        let result = Day9::solve_input2(TESTS_FILE_NAME);
 
-    //     assert_eq!(result, 0);
-    // }
+        assert_eq!(result, 1);
+    }
+    #[test]
+    fn test_day9_3()
+    {
+        let result = Day9::solve_input2(TESTS_ADDITIONAL_FILE_NAME);
+        
+        assert_eq!(result,36);
+    }
+
+    #[test]
+    fn test_day10_1() {
+        let result = Day10::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, 13140);
+    }
+
+    
 }
