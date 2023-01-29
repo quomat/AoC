@@ -108,4 +108,16 @@ mod tests {
 
         assert_eq!(result, 8);
     }
+    #[test]
+    fn test_day9_1() {
+        let result = Day9::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, 13);
+    }
+    // #[test]
+    // fn test_day9_2() {
+    //     let result = Day9::solve_input2(TESTS_FILE_NAME);
+
+    //     assert_eq!(result, 0);
+    // }
 }
