@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, fmt::Display, io::{self, BufRead}};
 
 use nom::{
     branch::alt,
@@ -47,6 +47,7 @@ impl Computer {
 
 pub struct Interceptor {
     counter: i32,
+    crt : Vec<char>
 }
 
 impl Interceptor {
@@ -55,27 +56,59 @@ impl Interceptor {
             20 | 60 | 100 | 140 | 180 | 220 => self.counter += c.signal_strength(),
             _ => (),
         }
+        if c.cycle % 40 == 1 && c.cycle > 1
+        {
+            self.crt.push('\n');
+        }
+
+        if ((c.cycle as i32 - 1)  % 40 - c.register_x).abs() <= 1 {self.crt.push('#')}  else {self.crt.push('.')}
+
+
+    }
+}
+
+#[derive(PartialEq,Debug)]
+pub enum ComputerOutput
+{
+    SignalSum(i32),
+    Screen(String)
+}
+
+impl Display for ComputerOutput {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self
+        {
+            ComputerOutput::SignalSum(x) => write!(f,"{}",x),
+            ComputerOutput::Screen(y) => write!(f,"{}",y),
+        }
     }
 }
 
 pub struct Day10;
 
-impl Day<2022, 10, Vec<Instruction>, i32> for Day10 {
-    fn solve(input: Vec<Instruction>) -> i32 {
-        dbg!(&input);
-        let mut comp = Computer {
-            register_x: 1,
-            cycle: 0,
-        };
-        let mut interceptor = Interceptor { counter: 0 };
-        for instr in input {
-            for _j in 0..instr.cycles() {
-                comp.cycle += 1;
-                interceptor.intercept_call(&comp);
-            }
-            comp.compute(&instr);
+impl Day<2022, 10, Vec<Instruction>, ComputerOutput> for Day10 {
+    fn solve(input: Vec<Instruction>) -> ComputerOutput {
+
+        ComputerOutput::SignalSum(play(input).counter)
+    }
+
+    fn solve2(input: Vec<Instruction>) -> ComputerOutput {
+        
+        ComputerOutput::Screen(play(input).crt.into_iter().collect())
+
+    }
+
+    fn answer2(output : ComputerOutput) {
+        match output
+        {
+            ComputerOutput::SignalSum(_) => unreachable!(),
+            ComputerOutput::Screen(x) => println!("{}",x),
         }
-        interceptor.counter
+        println!("Does this emulated CRT screen show 8 characters? (y/n)");
+
+        let stdin = io::stdin();
+        let mut lines = stdin.lock().lines();
+        if let Some(Ok(b)) =  lines.next() &&  b == "y" {  println!("Good!") } else {panic!()}
     }
 
     fn parse(input: &str) -> Vec<Instruction> {
@@ -94,4 +127,21 @@ impl Day<2022, 10, Vec<Instruction>, i32> for Day10 {
             .map(|r| r.1)
             .collect()
     }
+}
+
+fn play(input: Vec<Instruction>) -> Interceptor
+{
+    let mut comp = Computer {
+        register_x: 1,
+        cycle: 0,
+    };
+    let mut interceptor = Interceptor { counter: 0, crt : Vec::new() };
+    for instr in input {
+        for _j in 0..instr.cycles() {
+            comp.cycle += 1;
+            interceptor.intercept_call(&comp);
+        }
+        comp.compute(&instr);
+    }
+    interceptor
 }

@@ -134,8 +134,20 @@ mod tests {
     fn test_day10_1() {
         let result = Day10::solve_input1(TESTS_FILE_NAME);
 
-        assert_eq!(result, 13140);
+        assert_eq!(result, day10::ComputerOutput::SignalSum(13140));
     }
 
-    
+    #[test]
+    fn test_day10_2() {
+        let result = Day10::solve_input2(TESTS_FILE_NAME);
+
+        let crt = "##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....".to_owned();
+
+        assert_eq!(result, day10::ComputerOutput::Screen(crt));
+    }
 }

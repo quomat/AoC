@@ -3,6 +3,7 @@ name = "aoc-solver"
 version = "0.1.0"
 edition = "2021"
 authors = ["quomatz <quomatz@outlook.com>"]
+default-run = "aoc-runner"
 
 [lib]
 name = "aoc"
