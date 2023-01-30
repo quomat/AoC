@@ -52,11 +52,7 @@ pub struct Interceptor {
 impl Interceptor {
     fn intercept_call(&mut self, c: &Computer) {
         match c.cycle {
-            20 => self.counter += c.signal_strength(),
-            60 => self.counter += c.signal_strength(),
-            100 => self.counter += c.signal_strength(),
-            140 => self.counter += c.signal_strength(),
-            180 => self.counter += c.signal_strength(),
+            20 | 60 | 100 | 140 | 180 | 220 => self.counter += c.signal_strength(),
             _ => (),
         }
     }
