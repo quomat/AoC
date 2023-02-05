@@ -1,10 +1,5 @@
-use std::{
-    collections::HashSet,
-    error::Error,
-    fmt::Display,
-    str::FromStr,
-};
- 
+use std::{collections::HashSet, error::Error, fmt::Display, str::FromStr};
+
 use crate::day0::Day;
 
 #[derive(Debug)]
@@ -68,8 +63,6 @@ pub struct Position {
     y: i32,
 }
 
-
-
 pub struct Day9;
 
 impl Day<2022, 9, Vec<Command>, usize> for Day9 {
@@ -79,7 +72,6 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
 
         let mut visited = HashSet::new();
         visited.insert(tail.clone());
-        
 
         for command in input {
             update_head(&mut head, command);
@@ -88,27 +80,23 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
 
         visited.len()
     }
-    
+
     fn solve2(input: Vec<Command>) -> usize {
-        const N : usize = 10;
-        let mut rope = [Position::default();N];
-        
+        const N: usize = 10;
+        let mut rope = [Position::default(); N];
+
         let mut visited = HashSet::new();
-        visited.insert(rope[N-1].clone());
+        visited.insert(rope[N - 1].clone());
         for mut command in input {
-            while command.step > 0
-            {
+            while command.step > 0 {
                 update_head1(&mut rope[0], &command);
                 command.step -= 1;
-                for i in 0..N-2
-                {
-                         update_tail(&mut rope, i+1, i, None);
+                for i in 0..N - 2 {
+                    update_tail(&mut rope, i + 1, i, None);
                 }
-                 update_tail(&mut rope, N-1, N-2,Some(&mut visited));
+                update_tail(&mut rope, N - 1, N - 2, Some(&mut visited));
             }
-            
-            
-                        
+
             // buffer[(rope[0].x+500 )as usize][(rope[0].y + 500) as usize] = 'H';
             // for i in 1..N-1
             // {
@@ -116,7 +104,7 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
             // }
             // println!("{}",buffer.iter().map(|v| v.iter().collect::<String>()).collect::<Vec<String>>().join("\n"));
         }
-        
+
         visited.len()
     }
 
@@ -147,8 +135,12 @@ fn update_head1(h: &mut Position, c: &Command) {
     }
 }
 
-
-fn update_tail<const N : usize>(v: &mut [Position;N], it : usize, ih : usize, mut o_set: Option<&mut HashSet<Position>>) {
+fn update_tail<const N: usize>(
+    v: &mut [Position; N],
+    it: usize,
+    ih: usize,
+    mut o_set: Option<&mut HashSet<Position>>,
+) {
     loop {
         let x_delta = v[ih].x - v[it].x;
         let y_delta = v[ih].y - v[it].y;
@@ -160,12 +152,10 @@ fn update_tail<const N : usize>(v: &mut [Position;N], it : usize, ih : usize, mu
         let y_set = y_delta.signum();
         v[it].x += x_set;
         v[it].y += y_set;
-        
-        if let Some(ref mut set) = o_set
-        {
+
+        if let Some(ref mut set) = o_set {
             set.insert(v[it].clone());
         }
-        
     }
 }
 fn update_tail_single(t: &mut Position, h: &Position, mut o_set: Option<&mut HashSet<Position>>) {
@@ -180,11 +170,9 @@ fn update_tail_single(t: &mut Position, h: &Position, mut o_set: Option<&mut Has
         let y_set = y_delta.signum();
         t.x += x_set;
         t.y += y_set;
-        
-        if let Some(ref mut set) = o_set
-        {
+
+        if let Some(ref mut set) = o_set {
             set.insert(t.clone());
         }
-        
     }
 }

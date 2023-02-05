@@ -120,11 +120,10 @@ mod tests {
         assert_eq!(result, 1);
     }
     #[test]
-    fn test_day9_3()
-    {
+    fn test_day9_3() {
         let result = Day9::solve_input2(TESTS_ADDITIONAL_FILE_NAME);
-        
-        assert_eq!(result,36);
+
+        assert_eq!(result, 36);
     }
 
     #[test]
@@ -138,13 +137,13 @@ mod tests {
     fn test_day10_2() {
         let result = Day10::solve_input2(TESTS_FILE_NAME);
 
-        let crt = 
-"##..##..##..##..##..##..##..##..##..##..
+        let crt = "##..##..##..##..##..##..##..##..##..##..
 ###...###...###...###...###...###...###.
 ####....####....####....####....####....
 #####.....#####.....#####.....#####.....
 ######......######......######......####
-#######.......#######.......#######.....".to_owned();
+#######.......#######.......#######....."
+            .to_owned();
 
         assert_eq!(result, day10::ComputerOutput::Screen(crt));
     }

@@ -16,24 +16,26 @@ impl FromStr for ConsoleCommand {
         use ConsoleCommand::*;
 
         let mut ws = s.split_whitespace();
-        match ws.next()
-        {
-            Some("$") => 
-            match ws.next()
-            {
-                Some("cd") => if let Some(dir_name) = ws.next() { Ok(Cd(String::from(dir_name))) } else {Err(())},
+        match ws.next() {
+            Some("$") => match ws.next() {
+                Some("cd") => {
+                    if let Some(dir_name) = ws.next() {
+                        Ok(Cd(String::from(dir_name)))
+                    } else {
+                        Err(())
+                    }
+                }
                 Some("ls") => return Ok(ConsoleCommand::Ls),
                 _ => unreachable!(),
             },
-            Some(number) => 
-            {
-                number.parse::<u64>()
-                    .ok()
-                    .and_then(|n| ws.next()
-                                .and_then(|file_name|  
-                        Some(File(n, String::from(file_name)))))
-                    .ok_or(())
-            }
+            Some(number) => number
+                .parse::<u64>()
+                .ok()
+                .and_then(|n| {
+                    ws.next()
+                        .and_then(|file_name| Some(File(n, String::from(file_name))))
+                })
+                .ok_or(()),
             None => return Err(()),
         }
     }

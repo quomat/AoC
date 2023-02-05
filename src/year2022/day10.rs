@@ -1,4 +1,8 @@
-use std::{str::FromStr, fmt::Display, io::{self, BufRead}};
+use std::{
+    fmt::Display,
+    io::{self, BufRead},
+    str::FromStr,
+};
 
 use nom::{
     branch::alt,
@@ -47,7 +51,7 @@ impl Computer {
 
 pub struct Interceptor {
     counter: i32,
-    crt : Vec<char>
+    crt: Vec<char>,
 }
 
 impl Interceptor {
@@ -56,30 +60,29 @@ impl Interceptor {
             20 | 60 | 100 | 140 | 180 | 220 => self.counter += c.signal_strength(),
             _ => (),
         }
-        if c.cycle % 40 == 1 && c.cycle > 1
-        {
+        if c.cycle % 40 == 1 && c.cycle > 1 {
             self.crt.push('\n');
         }
 
-        if ((c.cycle as i32 - 1)  % 40 - c.register_x).abs() <= 1 {self.crt.push('#')}  else {self.crt.push('.')}
-
-
+        if ((c.cycle as i32 - 1) % 40 - c.register_x).abs() <= 1 {
+            self.crt.push('#')
+        } else {
+            self.crt.push('.')
+        }
     }
 }
 
-#[derive(PartialEq,Debug)]
-pub enum ComputerOutput
-{
+#[derive(PartialEq, Debug)]
+pub enum ComputerOutput {
     SignalSum(i32),
-    Screen(String)
+    Screen(String),
 }
 
 impl Display for ComputerOutput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self
-        {
-            ComputerOutput::SignalSum(x) => write!(f,"{}",x),
-            ComputerOutput::Screen(y) => write!(f,"{}",y),
+        match self {
+            ComputerOutput::SignalSum(x) => write!(f, "{}", x),
+            ComputerOutput::Screen(y) => write!(f, "{}", y),
         }
     }
 }
@@ -88,30 +91,25 @@ pub struct Day10;
 
 impl Day<2022, 10, Vec<Instruction>, ComputerOutput> for Day10 {
     fn solve(input: Vec<Instruction>) -> ComputerOutput {
-
         ComputerOutput::SignalSum(play(input).counter)
     }
 
     fn solve2(input: Vec<Instruction>) -> ComputerOutput {
-        
         ComputerOutput::Screen(play(input).crt.into_iter().collect())
-
     }
 
-    fn answer2(output : ComputerOutput) {
-        match output
-        {
+    fn answer2(output: ComputerOutput) {
+        match output {
             ComputerOutput::SignalSum(_) => unreachable!(),
-            ComputerOutput::Screen(x) => println!("{}",x),
+            ComputerOutput::Screen(x) => println!("{}", x),
         }
         println!("Does this emulated CRT screen show 8 characters? (y/n)");
 
         let stdin = io::stdin();
         let mut lines = stdin.lock().lines();
-        match lines.next()
-        {
+        match lines.next() {
             Some(Ok(b)) if b == "y" => println!("Good"),
-            _ => panic!()
+            _ => panic!(),
         }
     }
 
@@ -133,13 +131,15 @@ impl Day<2022, 10, Vec<Instruction>, ComputerOutput> for Day10 {
     }
 }
 
-fn play(input: Vec<Instruction>) -> Interceptor
-{
+fn play(input: Vec<Instruction>) -> Interceptor {
     let mut comp = Computer {
         register_x: 1,
         cycle: 0,
     };
-    let mut interceptor = Interceptor { counter: 0, crt : Vec::new() };
+    let mut interceptor = Interceptor {
+        counter: 0,
+        crt: Vec::new(),
+    };
     for instr in input {
         for _j in 0..instr.cycles() {
             comp.cycle += 1;

@@ -14,13 +14,11 @@ where
         Self::parse(input)
     }
 
-    fn answer(output : O)
-    {
-        println!("{}",output)
+    fn answer(output: O) {
+        println!("{}", output)
     }
 
-    fn answer2(output : O)
-    {
+    fn answer2(output: O) {
         Self::answer(output)
     }
 
@@ -34,13 +32,11 @@ where
         Self::solve2(Self::parse2(&i))
     }
 
-    fn answer_input1(input : &str)
-    {
+    fn answer_input1(input: &str) {
         Self::answer(Self::solve_input1(input));
     }
 
-    fn answer_input2(input : &str)
-    {
+    fn answer_input2(input: &str) {
         Self::answer2(Self::solve_input2(input));
     }
 }
