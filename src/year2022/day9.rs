@@ -1,10 +1,10 @@
 use std::{
-    collections::{HashSet},
+    collections::HashSet,
     error::Error,
     fmt::Display,
     str::FromStr,
 };
-
+ 
 use crate::day0::Day;
 
 #[derive(Debug)]
@@ -83,7 +83,7 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
 
         for command in input {
             update_head(&mut head, command);
-            update_tail(&mut tail, &head, Some(&mut visited));
+            update_tail_single(&mut tail, &head, Some(&mut visited));
         }
 
         visited.len()
@@ -102,16 +102,9 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
                 command.step -= 1;
                 for i in 0..N-2
                 {
-                    if let Ok([a,b]) = rope.get_many_mut([i+1,i])
-                    {
-                         update_tail(a, b, None);
-                    }
-                   
+                         update_tail(&mut rope, i+1, i, None);
                 }
-                if let Ok([a,b]) = rope.get_many_mut([N-1,N-2])
-                    {
-                         update_tail(a, b, Some(&mut visited));
-                    }
+                 update_tail(&mut rope, N-1, N-2,Some(&mut visited));
             }
             
             
@@ -154,7 +147,28 @@ fn update_head1(h: &mut Position, c: &Command) {
     }
 }
 
-fn update_tail(t: &mut Position, h: &Position, mut o_set: Option<&mut HashSet<Position>>) {
+
+fn update_tail<const N : usize>(v: &mut [Position;N], it : usize, ih : usize, mut o_set: Option<&mut HashSet<Position>>) {
+    loop {
+        let x_delta = v[ih].x - v[it].x;
+        let y_delta = v[ih].y - v[it].y;
+        if x_delta.abs() <= 1 && y_delta.abs() <= 1 {
+            break;
+        }
+
+        let x_set = x_delta.signum();
+        let y_set = y_delta.signum();
+        v[it].x += x_set;
+        v[it].y += y_set;
+        
+        if let Some(ref mut set) = o_set
+        {
+            set.insert(v[it].clone());
+        }
+        
+    }
+}
+fn update_tail_single(t: &mut Position, h: &Position, mut o_set: Option<&mut HashSet<Position>>) {
     loop {
         let x_delta = h.x - t.x;
         let y_delta = h.y - t.y;

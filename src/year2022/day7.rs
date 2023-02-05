@@ -25,7 +25,15 @@ impl FromStr for ConsoleCommand {
                 Some("ls") => return Ok(ConsoleCommand::Ls),
                 _ => unreachable!(),
             },
-            Some(number) => if let Ok(n) = number.parse::<u64>() && let Some(file_name) = ws.next() { Ok(File(n, String::from(file_name))) } else {Err(())},
+            Some(number) => 
+            {
+                number.parse::<u64>()
+                    .ok()
+                    .and_then(|n| ws.next()
+                                .and_then(|file_name|  
+                        Some(File(n, String::from(file_name)))))
+                    .ok_or(())
+            }
             None => return Err(()),
         }
     }

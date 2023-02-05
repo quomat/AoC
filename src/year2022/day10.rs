@@ -108,7 +108,11 @@ impl Day<2022, 10, Vec<Instruction>, ComputerOutput> for Day10 {
 
         let stdin = io::stdin();
         let mut lines = stdin.lock().lines();
-        if let Some(Ok(b)) =  lines.next() &&  b == "y" {  println!("Good!") } else {panic!()}
+        match lines.next()
+        {
+            Some(Ok(b)) if b == "y" => println!("Good"),
+            _ => panic!()
+        }
     }
 
     fn parse(input: &str) -> Vec<Instruction> {

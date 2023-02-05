@@ -19,14 +19,8 @@ pub struct Input {
 
 impl Move {
     fn new(s: Option<usize>, f: Option<usize>, t: Option<usize>) -> Option<Move> {
-        if let Some(size) = s && let Some(from) = f && let Some(to) = t
-        {
-            Some(Move{size, from:from-1, to:to-1})
-        }
-        else
-        {
-            None
-        }
+        s.and_then(|sp| f.and_then(|fp| t.and_then(|tp| 
+            Some(Move{size:sp, from:fp-1, to:tp-1}))))
     }
 }
 
