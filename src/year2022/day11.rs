@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 
-use nom::{
-    IResult,
-};
+use self::Monkeys::Statement;
+
+
 
 pub struct Day11;
 
@@ -28,39 +28,57 @@ mod Monkeys{
     }
 
     mod Parsers{
-        use nom::{error::Error, character::complete::digit1, combinator::map};
-        use nom::complete::tag;
+        use std::num::ParseIntError;
+
+        use nom::{error::Error, character::complete::{digit1, one_of}, combinator::{map,map_res}, branch::alt};
+        use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
         use super::{Statement, Operand, ArithmeticalOperation};
 
         struct StatementParser;
 
         #[allow(non_snake_case)]
-        fn parse_Operand(input : &str) -> nom::IResult<&str,Operand,Error<&str>> {
-            alt(map(tag("old"),|_| Operand::Old),map(digit1,|num_str| u32::from_str_radix(num_str,10)))(input)
+        fn parse_Operand(input : &str) -> nom::IResult<&str,Operand> {
+            alt((map(tag("old"),|_| Operand::Old),map_res(digit1,|num_str| Ok::<Operand,ParseIntError>(Operand::Number(u32::from_str_radix(num_str,10)?)))))(input)
         }
         #[allow(non_snake_case)]
-        fn parse_Operation(input : &str) -> nom::IResult<&str,Operand,Error<&str>> {
-            let operator = char(input);
-            match operator
+        fn parse_Operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
+            
+            let (remaining,operator) = (one_of("+-*/")(input)?;
+            let arithOp = match operator
             {
                 '+' => ArithmeticalOperation::Add,
                 '-' => ArithmeticalOperation::Substract,
                 '*' => ArithmeticalOperation::Multiply,
                 '/' => ArithmeticalOperation::Divide,
-                _ => return Error {input:input, },
-            }
+                _ => return Err(nom::Err::Error(nom::error::Error::new( input,  nom::error::ErrorKind::OneOf))),
+            };
+            Ok((remaining,arithOp))
                 
         }
 
         #[allow(non_snake_case)]
         fn parse_Statement( input: &str) -> nom::IResult<&str, Statement, Error<&str>> {
-            let new = tag("new =")(input);
-            let operand1 = parse_Operand(input)?;
-            let operation = parse_Operation(input)?;
-            let operand2 = parse_Operand(input)?;
+            map(|x| (tag("new = "), parse_Operand,parse_Operation,parse_Operand).parse(x),|(new,operand1,operation,operand2)| Statement{left: operand1,op: operation,right:operand2})(input)
+        }
 
-            Ok(Statement{operand1,operation,operand2});
+        #[cfg(test)]
+        mod tests
+        {
+            use super::*;
+
+            #[test]
+            fn test_parse_Statement()
+            {
+                let input = "new = 7 / old";
+                let result = parse_Statement(input);
+                
+
+                let r = result.unwrap();
+                
+                assert_eq!(r.0,"");
+                matches!(r.1, Statement { left : Operand::Number(7), op : ArithmeticalOperation::Divide, right : Operand::Old }); 
+            }
         }
     }
 }
@@ -74,6 +92,6 @@ pub struct Test<'a> {
 }
 pub struct Monkey<'a> {
     items: RefCell<Vec<Item>>,
-    op: Operation,
+    op: Statement,
     test: Test<'a>,
 }
