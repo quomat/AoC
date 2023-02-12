@@ -27,39 +27,64 @@ mod Monkeys{
       //assingnee : Operand - always New   
     }
 
-    mod Parsers{
-        use std::num::ParseIntError;
+    impl Statement
+    {
+        fn new(operand1 : Operand, operation : ArithmeticalOperation, operand2 : Operand) -> Statement
+        {
+            Statement{left: operand1,op: operation,right:operand2}
+        }
+    }
 
-        use nom::{error::Error, character::complete::{digit1, one_of}, combinator::{map,map_res}, branch::alt};
+    mod parsers{
+        use std::str::FromStr;
+
+        use nom::{error::Error, character::complete::*, combinator::{map,map_res}, branch::alt, sequence::delimited, Parser, Finish};
         use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
         use super::{Statement, Operand, ArithmeticalOperation};
 
-        struct StatementParser;
-
+        
         #[allow(non_snake_case)]
         fn parse_Operand(input : &str) -> nom::IResult<&str,Operand> {
-            alt((map(tag("old"),|_| Operand::Old),map_res(digit1,|num_str| Ok::<Operand,ParseIntError>(Operand::Number(u32::from_str_radix(num_str,10)?)))))(input)
+            let operand_parser = alt((map(tag("old"),|_| Operand::Old),map(nom::character::complete::u32, |i| Operand::Number(i))));
+            Ok(delimited(multispace0,operand_parser,multispace0)(input)?)
         }
         #[allow(non_snake_case)]
         fn parse_Operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
             
-            let (remaining,operator) = (one_of("+-*/")(input)?;
+            let (remaining,operator) = one_of("+-*/")(input)?;
             let arithOp = match operator
             {
                 '+' => ArithmeticalOperation::Add,
                 '-' => ArithmeticalOperation::Substract,
                 '*' => ArithmeticalOperation::Multiply,
                 '/' => ArithmeticalOperation::Divide,
-                _ => return Err(nom::Err::Error(nom::error::Error::new( input,  nom::error::ErrorKind::OneOf))),
+                _ => unreachable!(),
             };
             Ok((remaining,arithOp))
                 
         }
+        struct StatementParser;
+        impl<'a> Parser<&'a str,Statement, Error<&'a str>> for StatementParser
+        {
+            fn parse(&mut self, input: &'a str) -> nom::IResult<&'a str, Statement>
+            {
+                let statement_parser = map(|x| (tag("new ="), parse_Operand,parse_Operation,parse_Operand).parse(x),|(new,o1,op,o2)| Statement::new(o1,op,o2));
+                    Ok(delimited(multispace0,statement_parser,multispace0)(input)?)
+            }
+        }
+        impl FromStr for Statement
+        {
+            type Err = Error<String>;
 
-        #[allow(non_snake_case)]
-        fn parse_Statement( input: &str) -> nom::IResult<&str, Statement, Error<&str>> {
-            map(|x| (tag("new = "), parse_Operand,parse_Operation,parse_Operand).parse(x),|(new,operand1,operation,operand2)| Statement{left: operand1,op: operation,right:operand2})(input)
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                let mut parser = StatementParser{};
+                match parser.parse(s).finish()
+                {
+                    Ok((_remaining,output)) => Ok(output),
+                    Err(Error {input, code}) => Err(Error{code,input: input.to_string()})
+                }
+            }
         }
 
         #[cfg(test)]
@@ -68,16 +93,13 @@ mod Monkeys{
             use super::*;
 
             #[test]
-            fn test_parse_Statement()
+            fn parse_statement()
             {
                 let input = "new = 7 / old";
-                let result = parse_Statement(input);
                 
-
-                let r = result.unwrap();
+                let result = input.parse::<Statement>().unwrap();
                 
-                assert_eq!(r.0,"");
-                matches!(r.1, Statement { left : Operand::Number(7), op : ArithmeticalOperation::Divide, right : Operand::Old }); 
+                matches!(result, Statement { left : Operand::Number(7), op : ArithmeticalOperation::Divide, right : Operand::Old }); 
             }
         }
     }
