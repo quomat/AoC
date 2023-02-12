@@ -51,17 +51,14 @@ mod Monkeys{
         }
         #[allow(non_snake_case)]
         fn parse_Operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
-            
-            let (remaining,operator) = one_of("+-*/")(input)?;
-            let arithOp = match operator
-            {
-                '+' => ArithmeticalOperation::Add,
-                '-' => ArithmeticalOperation::Substract,
-                '*' => ArithmeticalOperation::Multiply,
-                '/' => ArithmeticalOperation::Divide,
-                _ => unreachable!(),
-            };
-            Ok((remaining,arithOp))
+            let (input,arithOp) = alt((
+                map(tag("+") ,|_| ArithmeticalOperation::Add),
+                map(tag("-") ,|_| ArithmeticalOperation::Substract),
+                map(tag("*") ,|_| ArithmeticalOperation::Multiply),
+                map(tag("/") ,|_| ArithmeticalOperation::Divide),
+            ))(input)?;
+            let x : Option<u32> = None;
+            Ok((input,arithOp))
                 
         }
         struct StatementParser;
