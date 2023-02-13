@@ -27,6 +27,32 @@ mod Monkeys{
       //assingnee : Operand - always New   
     }
 
+     
+    pub struct Item(u32);
+    pub struct Test {
+        monkeyindex_if_true: u32,
+        monkeyindex_if_false: u32,
+        test_fn : fn(Item) -> bool
+    }
+    impl Test
+    {
+        fn run(&self, item : Item) -> u32
+        {
+            match (self.test_fn)(item)
+            {
+                true => self.monkeyindex_if_true,
+                false => self.monkeyindex_if_false    
+            }            
+        }
+    }
+    
+    pub struct Monkey {
+        monkeyindex : u32,
+        items: Vec<Item>,
+        op: Statement,
+        test: Test,
+    }
+
     impl Statement
     {
         fn new(operand1 : Operand, operation : ArithmeticalOperation, operand2 : Operand) -> Statement
@@ -41,16 +67,17 @@ mod Monkeys{
         use nom::{error::Error, character::complete::*, combinator::{map,map_res}, branch::alt, sequence::delimited, Parser, Finish};
         use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
-        use super::{Statement, Operand, ArithmeticalOperation};
+        use super::*;
 
         
-        #[allow(non_snake_case)]
-        fn parse_Operand(input : &str) -> nom::IResult<&str,Operand> {
-            let operand_parser = alt((map(tag("old"),|_| Operand::Old),map(nom::character::complete::u32, |i| Operand::Number(i))));
+        fn parse_operand(input : &str) -> nom::IResult<&str,Operand> {
+            let operand_parser = alt(
+                (map(tag("old"),|_| Operand::Old),
+                 map(nom::character::complete::u32, |i| Operand::Number(i))));
             Ok(delimited(multispace0,operand_parser,multispace0)(input)?)
         }
-        #[allow(non_snake_case)]
-        fn parse_Operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
+
+        fn parse_operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
             let (input,arithOp) = alt((
                 map(tag("+") ,|_| ArithmeticalOperation::Add),
                 map(tag("-") ,|_| ArithmeticalOperation::Substract),
@@ -66,7 +93,7 @@ mod Monkeys{
         {
             fn parse(&mut self, input: &'a str) -> nom::IResult<&'a str, Statement>
             {
-                let statement_parser = map(|x| (tag("new ="), parse_Operand,parse_Operation,parse_Operand).parse(x),|(new,o1,op,o2)| Statement::new(o1,op,o2));
+                let statement_parser = map(|x| (tag("new ="), parse_operand,parse_operation,parse_operand).parse(x),|(new,o1,op,o2)| Statement::new(o1,op,o2));
                     Ok(delimited(multispace0,statement_parser,multispace0)(input)?)
             }
         }
@@ -84,6 +111,16 @@ mod Monkeys{
             }
         }
 
+        fn parse_item(input : &str) -> nom::IResult<&str,Item>
+        {
+            map(nom::character::complete::u32, Item)(input)
+        }
+
+        // fn parse_test(input : &str) -> nom::IResult<&str,Test>
+        // {
+            
+        // }
+        
         #[cfg(test)]
         mod tests
         {
@@ -104,13 +141,4 @@ mod Monkeys{
 
 
 
-pub struct Item(u32);
-pub struct Test<'a> {
-    truth: &'a Monkey<'a>,
-    falsity: &'a Monkey<'a>,
-}
-pub struct Monkey<'a> {
-    items: RefCell<Vec<Item>>,
-    op: Statement,
-    test: Test<'a>,
-}
+
