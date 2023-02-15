@@ -7,6 +7,8 @@ use self::Monkeys::Statement;
 pub struct Day11;
 
 mod Monkeys{
+    use std::collections::HashMap;
+    use std::hash::Hash;
     pub enum ArithmeticalOperation {
         Add,
         Substract,
@@ -29,28 +31,28 @@ mod Monkeys{
 
      
     pub struct Item(u32);
-    pub struct Test {
-        monkeyindex_if_true: u32,
-        monkeyindex_if_false: u32,
-        test_fn : fn(Item) -> bool
+    pub struct Test<T>
+    where T : Eq + Hash,
+     {
+        monkeyindex_if: HashMap<T,u32>,
+        test_fn : Box<dyn Fn(&Item) -> T> 
     }
-    impl Test
+    impl<T> Test<T>
+    where T : Eq + Hash
     {
-        fn run(&self, item : Item) -> u32
+        fn run(&self, item : &Item) -> u32
         {
-            match (self.test_fn)(item)
-            {
-                true => self.monkeyindex_if_true,
-                false => self.monkeyindex_if_false    
-            }            
+            *self.monkeyindex_if.get(&(self.test_fn)(item)).unwrap()
         }
     }
     
-    pub struct Monkey {
+    pub struct Monkey<T> 
+    where T : Eq + Hash
+    {
         monkeyindex : u32,
         items: Vec<Item>,
         op: Statement,
-        test: Test,
+        test: Test<T>,
     }
 
     impl Statement
@@ -68,7 +70,7 @@ mod Monkeys{
         use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
         use super::*;
-
+        use nom_supreme::ParserExt;
         
         fn parse_operand(input : &str) -> nom::IResult<&str,Operand> {
             let operand_parser = alt(
@@ -116,10 +118,38 @@ mod Monkeys{
             map(nom::character::complete::u32, Item)(input)
         }
 
-        // fn parse_test(input : &str) -> nom::IResult<&str,Test>
-        // {
+        fn parse_divisible_test(input : &str) -> nom::IResult<&str,Test<bool>>
+        {
+            let (input,_) = tag("divisible by ")(input)?;
+            let (input, dividend) = u32(input)?;
+            let bool_parser = alt((map(tag("true"),|_| true), map(tag("false"),|_| false)));
+            let (input, test_map) = parse_test_ifs(bool_parser)(input)?;
+
+            Ok((input,Test{ monkeyindex_if: test_map, test_fn: Box::new(move |Item(i)| i % dividend == 0)}))
+            }
+
+        
+        
+        fn parse_test_record<'a, T>(input: &'a str, key_parser : impl Parser<&'a str,T,Error<&'a str>>) -> nom::IResult<&'a str, (T,u32)>
+        {
+            let (input, _) = tag("If")(input)?;
+            let (input, key) = delimited(multispace0, key_parser, tag(": "))(input)?;
+            let (input, _) = tag("throw to monkey ")(input)?; 
+            let (input, idx) = u32(input)?;
+
+            Ok((input,(key,idx)))
+        }
+
+        fn parse_test_ifs<'a,T>(key_parser : impl Parser<&'a str,T,Error<&'a str>>) ->impl Fn(&'a str) -> nom::IResult<&'a str, HashMap<T,u32>>
+        {
+            |input|
+            {
+            let result = HashMap::new();
             
-        // }
+
+            Ok((input,result))
+            }
+        }
         
         #[cfg(test)]
         mod tests
