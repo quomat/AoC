@@ -29,7 +29,7 @@ mod Monkeys{
       //assingnee : Operand - always New   
     }
 
-     
+    #[derive(Debug,PartialEq)] 
     pub struct Item(u32);
     pub struct Test<T>
     where T : Eq + Hash,
@@ -66,20 +66,47 @@ mod Monkeys{
     mod parsers{
         use std::{str::FromStr, fmt::Debug};
 
-        use nom::{error::Error, character::complete::*, combinator::{map,map_res, all_consuming}, branch::alt, sequence::delimited, Parser, Finish};
+        use nom::{error::{Error, ParseError}, character::complete::{*, u32}, combinator::{map,map_res, all_consuming}, branch::alt, sequence::{delimited, preceded}, Parser, Finish, IResult, multi::{many0, separated_list0}};
         use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
         use super::*;
         use nom_supreme::ParserExt;
-        
-        fn operand(input : &str) -> nom::IResult<&str,Operand> {
+
+        fn ws<'a, F, O, E: ParseError<&'a str>>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
+  where
+  F: FnMut(&'a str) -> IResult<&'a str, O, E>,
+{
+  delimited(
+    multispace0,
+    inner,
+    multispace0
+  )
+}
+
+        fn monkey(input : &str) -> IResult<&str, Monkey<bool>> {
+
+            let (input,(monkeyindex,items,op,test)) = (
+               delimited(tag("Monkey "), u32,tag(":")),
+               preceded(ws(tag("Starting items:")), 
+                            separated_list0(ws(tag(",")),item)),
+                preceded(ws(tag("Operation:")),
+                    statement),
+                preceded(ws(tag("Test:")),
+                    divisible_test)
+            ).parse(input)?;
+
+            Ok((input,Monkey{ monkeyindex, items, op,test }))
+        }
+
+       
+        fn operand(input : &str) -> IResult<&str,Operand> {
             let operand_parser = alt(
                 (map(tag("old"),|_| Operand::Old),
-                 map(nom::character::complete::u32, |i| Operand::Number(i))));
+                 map(u32, |i| Operand::Number(i))));
             Ok(delimited(multispace0,operand_parser,multispace0)(input)?)
         }
 
-        fn operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
+        fn operation(input : &str) -> IResult<&str,ArithmeticalOperation> {
             let (input,arithOp) = alt((
                 map(tag("+") ,|_| ArithmeticalOperation::Add),
                 map(tag("-") ,|_| ArithmeticalOperation::Substract),
@@ -90,22 +117,17 @@ mod Monkeys{
             Ok((input,arithOp))
                 
         }
-        struct StatementParser;
-        impl<'a> Parser<&'a str,Statement, Error<&'a str>> for StatementParser
-        {
-            fn parse(&mut self, input: &'a str) -> nom::IResult<&'a str, Statement>
+            fn statement<'a>(input: &'a str) -> IResult<&'a str, Statement>
             {
                 let statement_parser = map(|x| (tag("new ="), operand,operation,operand).parse(x),|(new,o1,op,o2)| Statement::new(o1,op,o2));
                     Ok(delimited(multispace0,statement_parser,multispace0)(input)?)
             }
-        }
         impl FromStr for Statement
         {
             type Err = Error<String>;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                let mut parser = StatementParser{};
-                match parser.parse(s).finish()
+                match statement.parse(s).finish()
                 {
                     Ok((_remaining,output)) => Ok(output),
                     Err(Error {input, code}) => Err(Error{code,input: input.to_string()})
@@ -113,17 +135,17 @@ mod Monkeys{
             }
         }
 
-        fn item(input : &str) -> nom::IResult<&str,Item>
+        fn item(input : &str) -> IResult<&str,Item>
         {
-            map(nom::character::complete::u32, Item)(input)
+            map(u32, Item)(input)
         }
 
-        fn bool(input : &str) -> nom::IResult<&str,bool>
+        fn bool(input : &str) -> IResult<&str,bool>
         {
             alt((map(tag("true"),|_| true), map(tag("false"),|_| false)))(input)
         }
 
-        fn divisible_test(input : &str) -> nom::IResult<&str,Test<bool>>
+        fn divisible_test(input : &str) -> IResult<&str,Test<bool>>
         {
             let (input,_) = tag("divisible by ")(input)?;
             let (input, dividend) = u32(input)?;
@@ -135,8 +157,8 @@ mod Monkeys{
 
         
         
-        fn test_record<'a, T,F>(mut key_parser : F) -> impl FnMut(&'a str) -> nom::IResult<&'a str, (T,u32),Error<&'a str>>
-        where F : FnMut(&'a str) -> nom::IResult<&'a str, T,Error<&'a str>>
+        fn test_record<'a, T,F>(mut key_parser : F) -> impl FnMut(&'a str) -> IResult<&'a str, (T,u32),Error<&'a str>>
+        where F : FnMut(&'a str) -> IResult<&'a str, T,Error<&'a str>>
         {
             move |input|{
                 dbg!(input);
@@ -149,8 +171,8 @@ mod Monkeys{
             }
         }
 
-        fn test_ifs<'a,T,F>(mut key_parser : F) ->impl FnMut(&'a str) -> nom::IResult<&'a str, HashMap<T,u32>>
-        where F  : FnMut(&'a str) -> nom::IResult<&'a str, T,Error<&'a str>>,
+        fn test_ifs<'a,T,F>(mut key_parser : F) ->impl FnMut(&'a str) -> IResult<&'a str, HashMap<T,u32>>
+        where F  : FnMut(&'a str) -> IResult<&'a str, T,Error<&'a str>>,
          T  : Hash + Eq + Debug
         {
             move |input|
@@ -211,6 +233,29 @@ mod Monkeys{
                 assert_eq!((result.1.test_fn)(&Item(23)),true);
                 assert_eq!((result.1.test_fn)(&Item(24)),false);
                 
+            }
+
+            #[test]
+            fn parse_monkey()
+            {
+                let input = r#"Monkey 0:
+  Starting items: 79, 98
+  Operation: new = old * 19
+  Test: divisible by 23
+    If true: throw to monkey 2
+    If false: throw to monkey 3"#;
+
+                
+                let result = monkey(input).finish().unwrap();
+                assert_eq!(result.0,"");
+                
+                let monke = result.1;
+                assert_eq!(monke.items,vec![Item(79),Item(98)]);
+                matches!(monke.op,Statement{ left: Operand::Old , op: ArithmeticalOperation::Multiply, right: Operand::Number(19) });
+                assert_eq!(monke.test.monkeyindex_if[&true],2);
+                assert_eq!(monke.test.monkeyindex_if[&false],3);
+                assert_eq!((monke.test.test_fn)(&Item(23)),true);
+                assert_eq!((monke.test.test_fn)(&Item(24)),false);
             }
         }
     }
