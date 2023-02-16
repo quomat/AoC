@@ -66,20 +66,20 @@ mod Monkeys{
     mod parsers{
         use std::str::FromStr;
 
-        use nom::{error::Error, character::complete::*, combinator::{map,map_res}, branch::alt, sequence::delimited, Parser, Finish};
+        use nom::{error::Error, character::{complete::*, streaming::multispace0}, combinator::{map,map_res}, branch::alt, sequence::delimited, Parser, Finish};
         use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
         use super::*;
         use nom_supreme::ParserExt;
         
-        fn parse_operand(input : &str) -> nom::IResult<&str,Operand> {
+        fn operand(input : &str) -> nom::IResult<&str,Operand> {
             let operand_parser = alt(
                 (map(tag("old"),|_| Operand::Old),
                  map(nom::character::complete::u32, |i| Operand::Number(i))));
             Ok(delimited(multispace0,operand_parser,multispace0)(input)?)
         }
 
-        fn parse_operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
+        fn operation(input : &str) -> nom::IResult<&str,ArithmeticalOperation> {
             let (input,arithOp) = alt((
                 map(tag("+") ,|_| ArithmeticalOperation::Add),
                 map(tag("-") ,|_| ArithmeticalOperation::Substract),
@@ -95,7 +95,7 @@ mod Monkeys{
         {
             fn parse(&mut self, input: &'a str) -> nom::IResult<&'a str, Statement>
             {
-                let statement_parser = map(|x| (tag("new ="), parse_operand,parse_operation,parse_operand).parse(x),|(new,o1,op,o2)| Statement::new(o1,op,o2));
+                let statement_parser = map(|x| (tag("new ="), operand,operation,operand).parse(x),|(new,o1,op,o2)| Statement::new(o1,op,o2));
                     Ok(delimited(multispace0,statement_parser,multispace0)(input)?)
             }
         }
@@ -113,39 +113,45 @@ mod Monkeys{
             }
         }
 
-        fn parse_item(input : &str) -> nom::IResult<&str,Item>
+        fn item(input : &str) -> nom::IResult<&str,Item>
         {
             map(nom::character::complete::u32, Item)(input)
         }
 
-        fn parse_divisible_test(input : &str) -> nom::IResult<&str,Test<bool>>
+        fn divisible_test(input : &str) -> nom::IResult<&str,Test<bool>>
         {
             let (input,_) = tag("divisible by ")(input)?;
             let (input, dividend) = u32(input)?;
             let bool_parser = alt((map(tag("true"),|_| true), map(tag("false"),|_| false)));
-            let (input, test_map) = parse_test_ifs(bool_parser)(input)?;
+            let (input, test_map) = test_ifs(bool_parser)(input)?;
 
             Ok((input,Test{ monkeyindex_if: test_map, test_fn: Box::new(move |Item(i)| i % dividend == 0)}))
             }
 
         
         
-        fn parse_test_record<'a, T>(input: &'a str, key_parser : impl Parser<&'a str,T,Error<&'a str>>) -> nom::IResult<&'a str, (T,u32)>
+        fn test_record<'a, T>(key_parser : impl Parser<&'a str,T,Error<&'a str>>) -> impl Fn(&'a str) -> nom::IResult<&'a str, (T,u32)>
         {
-            let (input, _) = tag("If")(input)?;
-            let (input, key) = delimited(multispace0, key_parser, tag(": "))(input)?;
-            let (input, _) = tag("throw to monkey ")(input)?; 
-            let (input, idx) = u32(input)?;
+            |input|{
+                let (input, _) = tag("If")(input)?;
+                let (input, key) = delimited(multispace0, key_parser, tag(": "))(input)?;
+                let (input, _) = tag("throw to monkey ")(input)?; 
+                let (input, idx) = u32(input)?;
 
-            Ok((input,(key,idx)))
+                Ok((input,(key,idx)))
+            }
         }
 
-        fn parse_test_ifs<'a,T>(key_parser : impl Parser<&'a str,T,Error<&'a str>>) ->impl Fn(&'a str) -> nom::IResult<&'a str, HashMap<T,u32>>
+        fn test_ifs<'a,T>(key_parser : impl Parser<&'a str,T,Error<&'a str>>) ->impl Fn(&'a str) -> nom::IResult<&'a str, HashMap<T,u32>>
+        where T  : Hash + Eq
         {
             |input|
             {
             let result = HashMap::new();
-            
+            while let Ok((input,record)) = delimited(multispace0, test_record, multispace0)(input)
+            {
+                    result.insert(record.0,record.1);
+            }
 
             Ok((input,result))
             }
