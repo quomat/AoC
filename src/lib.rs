@@ -148,11 +148,11 @@ mod tests {
         assert_eq!(result, day10::ComputerOutput::Screen(crt));
     }
 
-    // #[test]
-    // fn test_day11_1()
-    // {
-    //     let result = Day11::solve_input1(TESTS_FILE_NAME);
+    #[test]
+    fn test_day11_1()
+    {
+        let result = Day11::solve_input1(TESTS_FILE_NAME);
 
-    //     assert_eq!(result, 10605);
-    // }
+        assert_eq!(result, 10605);
+    }
 }

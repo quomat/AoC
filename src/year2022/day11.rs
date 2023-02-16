@@ -1,14 +1,31 @@
 use std::cell::RefCell;
 
-use self::Monkeys::Statement;
+use crate::day0::Day;
+
+use self::monkeys::*;
 
 
 
 pub struct Day11;
 
-mod Monkeys{
+impl Day<2022,11,Vec<Monkey<bool>>, u64> for Day11
+{
+    fn solve(input: Vec<Monkey<bool>>) -> u64 {
+        dbg!(input);
+        todo!()
+    }
+
+    fn parse(input: &str) -> Vec<Monkey<bool>> {
+        monkeys::parsers::monkeys(input).unwrap().1
+    }
+}
+
+mod monkeys{
     use std::collections::HashMap;
+    use std::fmt::Debug;
     use std::hash::Hash;
+
+    #[derive(Debug)]
     pub enum ArithmeticalOperation {
         Add,
         Substract,
@@ -16,12 +33,14 @@ mod Monkeys{
         Divide,
     }
 
+    #[derive(Debug)]
     pub enum Operand {
       //New, - not needed, always in a fixed position  
         Old,
         Number(u32),
     }
 
+    #[derive(Debug)]
     pub struct Statement {
         left : Operand,
         op : ArithmeticalOperation,
@@ -31,12 +50,21 @@ mod Monkeys{
 
     #[derive(Debug,PartialEq)] 
     pub struct Item(u32);
+
     pub struct Test<T>
     where T : Eq + Hash,
      {
         monkeyindex_if: HashMap<T,u32>,
         test_fn : Box<dyn Fn(&Item) -> T> 
     }
+    impl<T> Debug for Test<T>
+    where T : Eq + Hash + Debug 
+    {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "Hi, Test here. Here is my monkeyindex_if: {0:?} \n and \n test_fn({1:?}) == {2:?}", self.monkeyindex_if,Item(0), (self.test_fn)(&Item(0)))
+    }
+    }
+    
     impl<T> Test<T>
     where T : Eq + Hash
     {
@@ -45,7 +73,7 @@ mod Monkeys{
             *self.monkeyindex_if.get(&(self.test_fn)(item)).unwrap()
         }
     }
-    
+    #[derive(Debug)]
     pub struct Monkey<T> 
     where T : Eq + Hash
     {
@@ -63,7 +91,7 @@ mod Monkeys{
         }
     }
 
-    mod parsers{
+    pub(crate) mod parsers{
         use std::{str::FromStr, fmt::Debug};
 
         use nom::{error::{Error, ParseError}, character::complete::{*, u32}, combinator::{map,map_res, all_consuming}, branch::alt, sequence::{delimited, preceded}, Parser, Finish, IResult, multi::{many0, separated_list0}};
@@ -98,6 +126,10 @@ mod Monkeys{
             Ok((input,Monkey{ monkeyindex, items, op,test }))
         }
 
+        pub(crate) fn monkeys(input : &str) -> IResult<&str, Vec<Monkey<bool>>>
+        {
+            all_consuming(many0(ws(monkey)))(input)
+        }
        
         fn operand(input : &str) -> IResult<&str,Operand> {
             let operand_parser = alt(
