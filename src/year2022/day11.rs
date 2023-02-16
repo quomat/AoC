@@ -64,9 +64,9 @@ mod Monkeys{
     }
 
     mod parsers{
-        use std::str::FromStr;
+        use std::{str::FromStr, fmt::Debug};
 
-        use nom::{error::Error, character::{complete::*, streaming::multispace0}, combinator::{map,map_res}, branch::alt, sequence::delimited, Parser, Finish};
+        use nom::{error::Error, character::complete::*, combinator::{map,map_res, all_consuming}, branch::alt, sequence::delimited, Parser, Finish};
         use nom::bytes::complete::tag;
         use nom::sequence::Tuple;
         use super::*;
@@ -118,42 +118,52 @@ mod Monkeys{
             map(nom::character::complete::u32, Item)(input)
         }
 
+        fn bool(input : &str) -> nom::IResult<&str,bool>
+        {
+            alt((map(tag("true"),|_| true), map(tag("false"),|_| false)))(input)
+        }
+
         fn divisible_test(input : &str) -> nom::IResult<&str,Test<bool>>
         {
             let (input,_) = tag("divisible by ")(input)?;
             let (input, dividend) = u32(input)?;
-            let bool_parser = alt((map(tag("true"),|_| true), map(tag("false"),|_| false)));
-            let (input, test_map) = test_ifs(bool_parser)(input)?;
+            dbg!(dividend);
+            let (input, test_map) = test_ifs(bool)(input)?;
 
             Ok((input,Test{ monkeyindex_if: test_map, test_fn: Box::new(move |Item(i)| i % dividend == 0)}))
-            }
+        }
 
         
         
-        fn test_record<'a, T>(key_parser : impl Parser<&'a str,T,Error<&'a str>>) -> impl Fn(&'a str) -> nom::IResult<&'a str, (T,u32)>
+        fn test_record<'a, T,F>(mut key_parser : F) -> impl FnMut(&'a str) -> nom::IResult<&'a str, (T,u32),Error<&'a str>>
+        where F : FnMut(&'a str) -> nom::IResult<&'a str, T,Error<&'a str>>
         {
-            |input|{
+            move |input|{
+                dbg!(input);
                 let (input, _) = tag("If")(input)?;
-                let (input, key) = delimited(multispace0, key_parser, tag(": "))(input)?;
+                let (input, key) = delimited(multispace0, &mut key_parser, tag(": "))(input)?;
                 let (input, _) = tag("throw to monkey ")(input)?; 
                 let (input, idx) = u32(input)?;
-
+                dbg!(idx);
                 Ok((input,(key,idx)))
             }
         }
 
-        fn test_ifs<'a,T>(key_parser : impl Parser<&'a str,T,Error<&'a str>>) ->impl Fn(&'a str) -> nom::IResult<&'a str, HashMap<T,u32>>
-        where T  : Hash + Eq
+        fn test_ifs<'a,T,F>(mut key_parser : F) ->impl FnMut(&'a str) -> nom::IResult<&'a str, HashMap<T,u32>>
+        where F  : FnMut(&'a str) -> nom::IResult<&'a str, T,Error<&'a str>>,
+         T  : Hash + Eq + Debug
         {
-            |input|
+            move |input|
             {
-            let result = HashMap::new();
-            while let Ok((input,record)) = delimited(multispace0, test_record, multispace0)(input)
-            {
-                    result.insert(record.0,record.1);
-            }
-
-            Ok((input,result))
+                let mut result = HashMap::new();
+                let mut running_input = input;
+                while let Ok((remining_input,record)) = delimited(multispace0, test_record(&mut key_parser), multispace0)(running_input)
+                {
+                        running_input = remining_input;
+                        result.insert(record.0,record.1);
+                }
+                dbg!(&result);
+                Ok((running_input,result))
             }
         }
         
@@ -170,6 +180,37 @@ mod Monkeys{
                 let result = input.parse::<Statement>().unwrap();
                 
                 matches!(result, Statement { left : Operand::Number(7), op : ArithmeticalOperation::Divide, right : Operand::Old }); 
+            }
+
+            #[test]
+            fn parse_test_record()
+            {
+                let input = "If true: throw to monkey 2";
+
+                let result = test_record(bool)(input).finish().unwrap();
+
+                assert_eq!(result.0, "");
+                assert_eq!(result.1, (true,2));
+            }
+
+            #[test]
+            fn parse_test()
+            {
+                let input = r#"divisible by 23
+                    If true: throw to monkey 2
+                    If false: throw to monkey 3
+                "#;
+                //tricky indentation should work
+
+                let result = divisible_test(input).finish().unwrap();
+
+                assert_eq!(result.0,"");
+
+                assert_eq!(result.1.monkeyindex_if[&true], 2);
+                assert_eq!(result.1.monkeyindex_if[&false], 3);
+                assert_eq!((result.1.test_fn)(&Item(23)),true);
+                assert_eq!((result.1.test_fn)(&Item(24)),false);
+                
             }
         }
     }
