@@ -149,10 +149,16 @@ mod tests {
     }
 
     #[test]
-    fn test_day11_1()
-    {
+    fn test_day11_1() {
         let result = Day11::solve_input1(TESTS_FILE_NAME);
 
         assert_eq!(result, 10605);
+    }
+
+    #[test]
+    fn test_day11_2() {
+        let result = Day11::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, 2713310158);
     }
 }
