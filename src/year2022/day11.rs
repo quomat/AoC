@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+
 
 use crate::day0::Day;
 
@@ -8,11 +8,11 @@ pub struct Day11;
 
 impl Day<2022, 11, Vec<Monkey<bool>>, u64> for Day11 {
     fn solve(input: Vec<Monkey<bool>>) -> u64 {
-        let N = 20;
+        let n = 20;
 
         let mut arena = MonkeyArena::new(input, true);
 
-        for _i in 0..N {
+        for _i in 0..n {
             arena.round();
             // println!("After round {0}, the monkeys are holding items with these worry levels:",_i);
         }
@@ -21,11 +21,11 @@ impl Day<2022, 11, Vec<Monkey<bool>>, u64> for Day11 {
     }
 
     fn solve2(input: Vec<Monkey<bool>>) -> u64 {
-        let N = 10000;
+        let n = 10000;
 
         let mut arena = MonkeyArena::new(input, false);
 
-        for _i in 0..N {
+        for _i in 0..n {
             arena.round();
             // // println!("After round {0}, the monkeys are holding items with these worry levels:",_i);
             // arena._print();
@@ -188,7 +188,7 @@ mod monkeys {
                 let item: Item;
                 let target: u32;
                 {
-                    let mut monke = &mut self.arena.get_mut(monkey_index).unwrap();
+                    let monke = &mut self.arena.get_mut(monkey_index).unwrap();
                     if let Some(r) = monke.throw(self.rem) {
                         item = r.0;
                         target = r.1;
@@ -198,7 +198,7 @@ mod monkeys {
                 }
 
                 *self.tally.get_mut(monkey_index).unwrap() += 1;
-                let mut target_monke = &mut self.arena.get_mut(&target).unwrap();
+                let target_monke = &mut self.arena.get_mut(&target).unwrap();
                 //     println!("\t\tItem with worry level {0} is thrown to monkey {1}.",item.clone().0,target);
                 target_monke.items.push_back(item);
             }
@@ -220,18 +220,18 @@ mod monkeys {
                 .into_iter()
                 .rev()
                 .take(2)
-                .fold(1, |acc, x| acc * (x as u64))
+                .product()
         }
 
         pub(crate) fn _print(&self) {
-            for i in self.arena.keys() {
-                //     println!("Monkey {0}: {1:?}",i,self.arena[i].items);
+            for _i in self.arena.keys() {
+                 println!("Monkey {0}: {1:?}",_i,self.arena[_i].items);
             }
         }
 
         pub(crate) fn _print_monkey_business(&self) {
             for i in self.arena.keys() {
-                //     println!("Monkey {0} inspected items {1} times.",i,self.tally[i])
+                 println!("Monkey {0} inspected items {1} times.",i,self.tally[i])
             }
         }
     }
@@ -254,7 +254,7 @@ mod monkeys {
         fn inspect(&mut self, rem: Option<u32>) {
             if let Some(it) = self.items.get_mut(0) {
                 //     println!("\tMonkey inspects an item with a worry level of {}.",it.0);
-                let oldd = it.clone();
+                let _oldd = it.clone();
                 self.op.execute(it);
                 //     println!("\t\tWorry level is changed from {0} to {1}",oldd.0,it.0);
                 it.devalue(rem);
@@ -301,18 +301,18 @@ mod monkeys {
         use std::{fmt::Debug, str::FromStr};
 
         use super::*;
-        use nom::bytes::complete::tag;
-        use nom::sequence::Tuple;
         use nom::{
+            sequence::Tuple,
+            bytes::complete::tag,
             branch::alt,
             character::complete::{u32, *},
-            combinator::{all_consuming, map, map_res},
-            error::{Error, ParseError},
+            combinator::{all_consuming, map},
+            error::*,
             multi::{many0, separated_list0},
             sequence::{delimited, preceded},
             Finish, IResult, Parser,
         };
-        use nom_supreme::ParserExt;
+        
 
         fn ws<'a, F, O, E: ParseError<&'a str>>(
             inner: F,
@@ -359,19 +359,18 @@ mod monkeys {
         }
 
         fn operation(input: &str) -> IResult<&str, ArithmeticalOperation> {
-            let (input, arithOp) = alt((
+            let (input, arith_op) = alt((
                 map(tag("+"), |_| ArithmeticalOperation::Add),
                 map(tag("-"), |_| ArithmeticalOperation::Substract),
                 map(tag("*"), |_| ArithmeticalOperation::Multiply),
                 map(tag("/"), |_| ArithmeticalOperation::Divide),
             ))(input)?;
-            let x: Option<u32> = None;
-            Ok((input, arithOp))
+            Ok((input, arith_op))
         }
         fn statement<'a>(input: &'a str) -> IResult<&'a str, Statement> {
             let statement_parser = map(
                 |x| (tag("new ="), operand, operation, operand).parse(x),
-                |(new, o1, op, o2)| Statement::new(o1, op, o2),
+                |(_, o1, op, o2)| Statement::new(o1, op, o2),
             );
             Ok(delimited(multispace0, statement_parser, multispace0)(
                 input,
