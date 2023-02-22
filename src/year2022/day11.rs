@@ -1,5 +1,3 @@
-
-
 use crate::day0::Day;
 
 use self::monkeys::*;
@@ -216,22 +214,18 @@ mod monkeys {
         pub(crate) fn get_monkey_business(self) -> u64 {
             let mut tally = self.tally.into_values().collect::<Vec<u64>>();
             tally.sort();
-            tally
-                .into_iter()
-                .rev()
-                .take(2)
-                .product()
+            tally.into_iter().rev().take(2).product()
         }
 
         pub(crate) fn _print(&self) {
             for _i in self.arena.keys() {
-                 println!("Monkey {0}: {1:?}",_i,self.arena[_i].items);
+                println!("Monkey {0}: {1:?}", _i, self.arena[_i].items);
             }
         }
 
         pub(crate) fn _print_monkey_business(&self) {
             for i in self.arena.keys() {
-                 println!("Monkey {0} inspected items {1} times.",i,self.tally[i])
+                println!("Monkey {0} inspected items {1} times.", i, self.tally[i])
             }
         }
     }
@@ -302,17 +296,16 @@ mod monkeys {
 
         use super::*;
         use nom::{
-            sequence::Tuple,
-            bytes::complete::tag,
             branch::alt,
+            bytes::complete::tag,
             character::complete::{u32, *},
             combinator::{all_consuming, map},
             error::*,
             multi::{many0, separated_list0},
+            sequence::Tuple,
             sequence::{delimited, preceded},
             Finish, IResult, Parser,
         };
-        
 
         fn ws<'a, F, O, E: ParseError<&'a str>>(
             inner: F,

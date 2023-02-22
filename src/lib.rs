@@ -161,4 +161,18 @@ mod tests {
 
         assert_eq!(result, 2713310158);
     }
+
+    #[test]
+    fn test_day12_1() {
+        let result = Day12::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, 31);
+    }
+
+    #[test]
+    fn test_day12_2() {
+        let result = Day12::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, 29);
+    }
 }

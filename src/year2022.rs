@@ -30,3 +30,6 @@ pub use self::day10::Day10;
 
 pub mod day11;
 pub use self::day11::Day11;
+
+pub mod day12;
+pub use self::day12::Day12;
