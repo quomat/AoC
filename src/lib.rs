@@ -175,4 +175,18 @@ mod tests {
 
         assert_eq!(result, 29);
     }
+
+    
+    #[test]
+    fn test_day13_1() {
+        let result = Day13::solve_input1(TESTS_FILE_NAME);
+
+        assert_eq!(result, vec![1,2,4,6]);
+    }
+    #[test]
+    fn test_day13_2() {
+        let result = Day13::solve_input2(TESTS_FILE_NAME);
+
+        assert_eq!(result, vec![10,14]);
+    }
 }

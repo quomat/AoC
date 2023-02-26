@@ -1,8 +1,8 @@
-use std::{fmt::Display, fs};
+use std::{fmt::Debug, fs};
 
 pub trait Day<const Y: u16, const N: u8, I, O>
 where
-    O: Display,
+    O: Debug,
 {
     fn solve(input: I) -> O;
     fn solve2(input: I) -> O {
@@ -15,11 +15,11 @@ where
     }
 
     fn answer(output: O) {
-        println!("{}", output)
+        println!("{:?}", output);
     }
 
     fn answer2(output: O) {
-        Self::answer(output)
+        println!("{:?}", output);
     }
 
     fn solve_input1(input: &str) -> O {

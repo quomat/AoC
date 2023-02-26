@@ -18,8 +18,7 @@ impl Day<2022, 12, HeightMap, u32> for Day12 {
         let mut visited: Vec<Vec<Option<u32>>> = vec![vec![None; m]; n];
         loop {
             let incoming = opens.clone();
-            if incoming.len() == 0
-            {
+            if incoming.len() == 0 {
                 return u32::MAX;
             }
             opens.clear();
@@ -59,12 +58,32 @@ impl Day<2022, 12, HeightMap, u32> for Day12 {
         }
     }
 
-fn solve2(input: HeightMap) -> u32 {
-        let starting_pos :Vec<(usize,usize)>= input.map.clone().into_iter().enumerate().map(move |(i,b)| b.into_iter().enumerate()
-            .filter_map(move |(j,b)| if b == b'a' { Some((i,j))} else {None})).flatten().collect();
+    fn solve2(input: HeightMap) -> u32 {
+        let starting_pos: Vec<(usize, usize)> = input
+            .map
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(move |(i, b)| {
+                b.into_iter()
+                    .enumerate()
+                    .filter_map(move |(j, b)| if b == b'a' { Some((i, j)) } else { None })
+            })
+            .flatten()
+            .collect();
 
-        starting_pos.into_iter().map(|s| Day12::solve(HeightMap{ map: input.map.clone(), start: s, end: input.end })).min().unwrap()
-    }    
+        starting_pos
+            .into_iter()
+            .map(|s| {
+                Day12::solve(HeightMap {
+                    map: input.map.clone(),
+                    start: s,
+                    end: input.end,
+                })
+            })
+            .min()
+            .unwrap()
+    }
     fn parse(input: &str) -> HeightMap {
         let mut start: Option<(usize, usize)> = None;
         let mut end: Option<(usize, usize)> = None;
