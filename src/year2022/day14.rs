@@ -1,9 +1,10 @@
-use nom::{bytes::complete::tag, multi::separated_list1, sequence::tuple, character::complete::u32};
+use nom::{bytes::complete::tag, multi::separated_list1, sequence::tuple, character::complete::u32, IResult, error::{ParseError, Error}};
 
 use crate::day0::Day;
 
-struct Day14;
+pub struct Day14;
 
+#[derive(Debug)]
 struct Point
 {
 	x : u32,
@@ -12,19 +13,26 @@ struct Point
 
 type Rock = Vec<Point>;
 
-struct RockFormation
+#[derive(Debug)]
+pub struct RockFormation
 {
 	parts : Vec<Rock>,
 }
 
 impl Day<2022,14,RockFormation,usize> for Day14
 {
-    fn solve(input: I) -> O {
+    fn solve(input: RockFormation) -> usize {
+		dbg!(input);
         todo!()
     }
 
     fn parse(input: &str) -> RockFormation {
-		let arrow = tag(" -> ");
-    	let formation = separated_list1(arrow,tuple(u32,tag(","),u32));
+		let point_parser = |input| -> IResult<&str,Point,Error<&str>> {
+			let (input,x) = nom::sequence::terminated(u32,tag(","))(input)?;
+			let (input,y) = u32(input)?;
+			Ok((input,Point{x,y}))
+		};
+    	let parts = separated_list1(tag("\n"),separated_list1(tag(" -> "),point_parser))(input).unwrap().1;
+		RockFormation{parts}
     }
 }

@@ -10,128 +10,54 @@ mod tests {
     const TESTS_ADDITIONAL_FILE_NAME: &str = "test2";
     use crate::{day0::Day, year2022::*};
 
-    #[test]
-    fn test_day1_1() {
-        let result = Day1::solve_input1(TESTS_FILE_NAME);
 
-        assert_eq!(result, 24000);
-    }
-    #[test]
-    fn test_day1_2() {
-        let result = Day1::solve_input2(TESTS_FILE_NAME);
+    macro_rules! day
+    {
+        ($n:tt, $p:tt, $answer:expr) =>
+        {
+            paste::item!
+            {
+                #[test]
+                fn [<test_day $n _ $p>]()
+                {
+                    let result = [<Day $n>]::[<solve_input $p>](TESTS_FILE_NAME);
 
-        assert_eq!(result, 45000);
-    }
-    #[test]
-    fn test_day2_1() {
-        let result = Day2::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 15);
-    }
-    #[test]
-    fn test_day2_2() {
-        let result = Day2::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 12);
-    }
-    #[test]
-    fn test_day3_1() {
-        let result = Day3::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 157);
-    }
-    #[test]
-    fn test_day3_2() {
-        let result = Day3::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 70);
-    }
-    #[test]
-    fn test_day4_1() {
-        let result = Day4::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 2);
-    }
-    #[test]
-    fn test_day4_2() {
-        let result = Day4::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 4);
+                    assert_eq!(result,$answer);
+                }
+            }
+        }
     }
 
-    #[test]
-    fn test_day5_1() {
-        let result = Day5::solve_input1(TESTS_FILE_NAME);
 
-        assert_eq!(result, "CMZ");
-    }
-    #[test]
-    fn test_day5_2() {
-        let result = Day5::solve_input2(TESTS_FILE_NAME);
+    
+    day!(1,1, 24000);
+    day!(1,2, 45000);
+    day!(2,1, 15);
+    day!(2,2, 12);
+    day!(3,1, 157);
+    day!(3,2, 70);
+    day!(4,1, 2);
+    day!(4,2, 4);
 
-        assert_eq!(result, "MCD");
-    }
-    #[test]
-    fn test_day6_1() {
-        let result = Day6::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 7);
-    }
-    #[test]
-    fn test_day6_2() {
-        let result = Day6::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 19);
-    }
-    #[test]
-    fn test_day7_1() {
-        let result = Day7::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 95437);
-    }
-    #[test]
-    fn test_day7_2() {
-        let result = Day7::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 24933642);
-    }
-    #[test]
-    fn test_day8_1() {
-        let result = Day8::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 21);
-    }
-    #[test]
-    fn test_day8_2() {
-        let result = Day8::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 8);
-    }
-    #[test]
-    fn test_day9_1() {
-        let result = Day9::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 13);
-    }
-    #[test]
-    fn test_day9_2() {
-        let result = Day9::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 1);
-    }
-    #[test]
-    fn test_day9_3() {
-        let result = Day9::solve_input2(TESTS_ADDITIONAL_FILE_NAME);
-
-        assert_eq!(result, 36);
-    }
+    day!(5,1, "CMZ");
+    day!(5,2, "MCD");
+    day!(6,1, 7);
+    day!(6,2, 19);
+    day!(7,1, 95437);
+    day!(7,2, 24933642);
+    day!(8,1, 21);
+    day!(8,2, 8);
+    day!(9,1, 13);
+    day!(9,2, 1);
 
     #[test]
-    fn test_day10_1() {
-        let result = Day10::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, day10::ComputerOutput::SignalSum(13140));
+    fn test_day9_3() { 
+      let result = Day9::solve_input2(TESTS_ADDITIONAL_FILE_NAME);
+           assert_eq!(result, 36);
     }
+
+    
+    day!(10,1, day10::ComputerOutput::SignalSum(13140));
 
     #[test]
     fn test_day10_2() {
@@ -148,45 +74,18 @@ mod tests {
         assert_eq!(result, day10::ComputerOutput::Screen(crt));
     }
 
-    #[test]
-    fn test_day11_1() {
-        let result = Day11::solve_input1(TESTS_FILE_NAME);
+    day!(11,1, 10605);
 
-        assert_eq!(result, 10605);
-    }
+    day!(11,2, 2713310158);
 
-    #[test]
-    fn test_day11_2() {
-        let result = Day11::solve_input2(TESTS_FILE_NAME);
+    day!(12,1, 31);
 
-        assert_eq!(result, 2713310158);
-    }
-
-    #[test]
-    fn test_day12_1() {
-        let result = Day12::solve_input1(TESTS_FILE_NAME);
-
-        assert_eq!(result, 31);
-    }
-
-    #[test]
-    fn test_day12_2() {
-        let result = Day12::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, 29);
-    }
+    day!(12,2, 29);
 
     
-    #[test]
-    fn test_day13_1() {
-        let result = Day13::solve_input1(TESTS_FILE_NAME);
+    day!(13,1, vec![1,2,4,6]);
+    day!(13,2, vec![10,14]);
 
-        assert_eq!(result, vec![1,2,4,6]);
-    }
-    #[test]
-    fn test_day13_2() {
-        let result = Day13::solve_input2(TESTS_FILE_NAME);
-
-        assert_eq!(result, vec![10,14]);
-    }
+    day!(14,1,24);
 }
+
