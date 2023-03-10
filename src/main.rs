@@ -3,5 +3,5 @@ use aoc::year2022::*;
 
 const INPUT_FILE_NAME: &str = "input";
 fn main() {
-    Day13::answer_input2(INPUT_FILE_NAME)
+    Day14::answer_input2(INPUT_FILE_NAME)
 }

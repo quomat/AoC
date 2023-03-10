@@ -21,28 +21,34 @@ impl Day<2022, 13, Vec<(Packet, Packet)>, Vec<usize>> for Day13 {
             .collect()
     }
 
-    fn solve2(input: Vec<(Packet,Packet)>) -> Vec<usize>
-    {
+    fn solve2(input: Vec<(Packet, Packet)>) -> Vec<usize> {
         let decoder1 = "[[6]]".parse::<Packet>().unwrap();
         let decoder2 = "[[2]]".parse::<Packet>().unwrap();
-        let mut decoders = vec![decoder1.clone(), decoder2.clone()];
-        
-        let mut prepared = input.into_iter().flat_map(|(a,b)| vec![a,b]).chain(decoders.into_iter()).collect::<Vec<Packet>>();
+        let decoders = vec![decoder1.clone(), decoder2.clone()];
+
+        let mut prepared = input
+            .into_iter()
+            .flat_map(|(a, b)| vec![a, b])
+            .chain(decoders.into_iter())
+            .collect::<Vec<Packet>>();
 
         prepared.sort();
 
-        prepared.into_iter().enumerate().filter(|(_,x)| *x == decoder1 || *x == decoder2).map(|(i,_)| i+1).collect()
+        prepared
+            .into_iter()
+            .enumerate()
+            .filter(|(_, x)| *x == decoder1 || *x == decoder2)
+            .map(|(i, _)| i + 1)
+            .collect()
     }
 
     fn answer(output: Vec<usize>) {
-        println!("{}", output.iter().sum::<usize>());    
+        println!("{}", output.iter().sum::<usize>());
     }
 
     fn answer2(output: Vec<usize>) {
-        println!("{}",output.iter().product::<usize>());
+        println!("{}", output.iter().product::<usize>());
     }
-
-    
 
     fn parse(input: &str) -> Vec<(Packet, Packet)> {
         let linnes = input.split("\n\n");
@@ -74,7 +80,7 @@ impl PartialOrd for Packet {
         //         indent = INDENT
         //     );
         //     INDENT += 1;
-        
+
         let res = match (self, other) {
             (Integer(x), Integer(y)) => match x.cmp(y) {
                 std::cmp::Ordering::Equal => None,
@@ -103,11 +109,9 @@ impl PartialOrd for Packet {
     }
 }
 
-impl Ord for Packet
-{
+impl Ord for Packet {
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.partial_cmp(other)
-        {
+        match self.partial_cmp(other) {
             Some(order) => order,
             None => Ordering::Equal,
         }
