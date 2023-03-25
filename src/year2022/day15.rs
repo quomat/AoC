@@ -4,6 +4,14 @@ use crate::day0::*;
 
 pub struct Day15;
 
+impl<T> Answer for T
+where T : Fn(i32) -> u32
+{
+    fn answer(&self) -> String {
+        String::from(self(2000000))
+    }
+}
+
 impl<T> Day<2022,15,Vec<Sensor>, T>  for Day15
 where T : Fn(i32) -> u32
 {
@@ -13,7 +21,6 @@ where T : Fn(i32) -> u32
 		
     }
 
-	fn answer(output: O) {
 
     fn parse(input: &str) -> Vec<Sensor> {
 		nom::multi::separated_list0(tag("\n"),parsing::sensor)(input).unwrap().1

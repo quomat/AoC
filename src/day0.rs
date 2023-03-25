@@ -1,8 +1,13 @@
 use std::{fmt::Debug, fs};
 
+pub trait Answer
+{
+    fn answer(&self) -> String;
+}
+
 pub trait Day<const Y: u16, const N: u8, I, O>
 where
-    O: Debug,
+    O: Answer,
 {
     fn solve(input: I) -> O;
     fn solve2(input: I) -> O {
@@ -15,11 +20,11 @@ where
     }
 
     fn answer(output: O) {
-        println!("{:?}", output);
+        println!("{:}", output.answer());
     }
 
     fn answer2(output: O) {
-        println!("{:?}", output);
+        println!("{:}", output.answer());
     }
 
     fn solve_input1(input: &str) -> O {
@@ -38,5 +43,15 @@ where
 
     fn answer_input2(input: &str) {
         Self::answer2(Self::solve_input2(input));
+    }
+}
+
+impl<T> Answer for T
+where T : Debug
+{
+    fn answer(&self) -> String {
+        let s = String::new();
+        write!(s,"{:?}",self);
+        s
     }
 }
