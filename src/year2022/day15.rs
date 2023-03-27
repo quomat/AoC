@@ -2,22 +2,15 @@ use nom::bytes::complete::tag;
 
 use crate::day0::*;
 
-pub struct Day15;
+pub struct Day15<const P : i32>;
 
-impl<T> Answer for T
-where T : Fn(i32) -> u32
-{
-    fn answer(&self) -> String {
-        String::from(self(2000000))
-    }
-}
 
-impl<T> Day<2022,15,Vec<Sensor>, T>  for Day15
-where T : Fn(i32) -> u32
+
+impl<const P : i32> Day<2022,15,Vec<Sensor>, u32>  for Day15<P>
 {
     fn solve(input: Vec<Sensor>) -> u32 {
-		let y = 2000000;
-
+		
+		
 		
     }
 
@@ -36,7 +29,7 @@ struct Point
 pub struct Sensor
 {
 	pos : Point,
-	/// Closests beacon.
+	/// Closest beacon.
 	beacon : Point
 }
 

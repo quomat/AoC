@@ -46,6 +46,7 @@ where
     }
 }
 
+
 impl<T> Answer for T
 where T : Debug
 {
