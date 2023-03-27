@@ -10,7 +10,7 @@ impl<const P : i32> Day<2022,15,Vec<Sensor>, u32>  for Day15<P>
 {
     fn solve(input: Vec<Sensor>) -> u32 {
 		
-		
+		todo!()
 		
     }
 
@@ -33,6 +33,56 @@ pub struct Sensor
 	beacon : Point
 }
 
+
+mod intervals
+{
+    use itertools::Itertools;
+
+	
+
+	struct IntervalArray
+	{
+		switches : Vec<u32>,
+	}
+
+	impl IntervalArray
+	{
+		fn new() -> IntervalArray
+		{
+			IntervalArray { switches: Vec::new() }
+		}
+		
+		fn add(&mut self, l : u32, r : u32)
+		{
+			let i = 0;
+			let ir = self.switches.partition_point(|&x| x > r);
+			let il = self.switches.partition_point(|&x| x < l);
+			self.switches.splice(il..ir,[l,r]);
+		}
+
+		fn count(&self) -> u32
+		{
+			self.switches.iter().tuples().fold(0,|acc,(l,r)| acc + r - l + 1)
+		}
+	}
+
+	#[cfg(test)]
+	mod tests
+	{
+    use super::IntervalArray;
+
+		#[test]
+		fn add_1()
+		{
+			let mut ia = IntervalArray::new();
+
+			ia.add(5,8);
+			ia.add(9,13);
+
+			assert_eq!(ia.count(),9);
+		}
+	}
+}
 mod parsing
 {
     use nom::{IResult, sequence::{preceded, delimited}, bytes::complete::tag, character::complete::i32};

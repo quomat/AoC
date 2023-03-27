@@ -1,4 +1,4 @@
-use std::{fmt::Debug, fs};
+use std::{fmt::Debug, fmt::Write, fs};
 
 pub trait Answer
 {
@@ -51,7 +51,7 @@ impl<T> Answer for T
 where T : Debug
 {
     fn answer(&self) -> String {
-        let s = String::new();
+        let mut s = String::new();
         write!(s,"{:?}",self);
         s
     }
