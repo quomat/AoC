@@ -80,4 +80,9 @@ mod tests {
 
     day!(14, 1, 24);
     day!(14,2,93);
+    #[test]
+    fn test_day15_1() {
+        let result = Day15::<10>::solve_input1(TESTS_FILE_NAME);
+        assert_eq!(result, 26);
+    }
 }
