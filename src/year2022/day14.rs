@@ -1,18 +1,14 @@
 use itertools::Itertools;
 use nom::{
-    bytes::complete::tag,
-    character::complete::u64,
-    error::Error,
-    multi::separated_list1,
-    IResult,
+    bytes::complete::tag, character::complete::u64, error::Error, multi::separated_list1, IResult,
 };
 use rand::Rng;
 use std::fmt::Debug;
+use std::fmt::Write;
 use std::{
     collections::VecDeque,
     rc::{Rc, Weak},
 };
-use std::fmt::Write;
 
 use crate::day0::Day;
 
@@ -51,7 +47,8 @@ impl Day<2022, 14, RockFormation, usize> for Day14 {
             .iter()
             .map(|r| r.iter().map(|p| p.y).max().unwrap())
             .max()
-            .unwrap()+2;
+            .unwrap()
+            + 2;
         for rock in input.parts {
             world.add(Entity::Rock(rock.clone()));
         }
@@ -130,11 +127,11 @@ impl World {
                     }
                 }
             }
-            Entity::Floor(y_max) => 
-                for x in 0..=self.rightdown.x+500 {
+            Entity::Floor(y_max) => {
+                for x in 0..=self.rightdown.x + 500 {
                     self.add_point(&Point { x, y: *y_max }, Rc::downgrade(&e))
-            },
-            
+                }
+            }
         }
 
         self.entities.push(e);
@@ -263,8 +260,7 @@ impl World {
 impl Debug for World {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut rng = rand::thread_rng();
-        if rng.gen_range(0..9000) != 0
-        {
+        if rng.gen_range(0..9000) != 0 {
             // return Ok(());
         }
         let mut s = String::new();
@@ -299,7 +295,6 @@ impl Debug for World {
         Ok(())
     }
 }
-
 
 fn prepend<T>(deq: &mut VecDeque<T>, other: &mut VecDeque<T>) {
     while let Some(a) = other.pop_back() {

@@ -1,7 +1,6 @@
 use std::{fmt::Debug, fmt::Write, fs};
 
-pub trait Answer
-{
+pub trait Answer {
     fn answer(&self) -> String;
 }
 
@@ -46,13 +45,13 @@ where
     }
 }
 
-
 impl<T> Answer for T
-where T : Debug
+where
+    T: Debug,
 {
     fn answer(&self) -> String {
         let mut s = String::new();
-        write!(s,"{:?}",self);
+        write!(s, "{:?}", self).unwrap();
         s
     }
 }

@@ -79,10 +79,15 @@ mod tests {
     day!(13, 2, vec![10, 14]);
 
     day!(14, 1, 24);
-    day!(14,2,93);
+    day!(14, 2, 93);
     #[test]
     fn test_day15_1() {
         let result = Day15::<10>::solve_input1(TESTS_FILE_NAME);
         assert_eq!(result, 26);
+    }
+    #[test]
+    fn test_day15_2() {
+        let result = Day15::<10>::solve_input2(TESTS_FILE_NAME);
+        assert_eq!(result, 56000011);
     }
 }
