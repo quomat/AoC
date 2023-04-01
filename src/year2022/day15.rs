@@ -99,7 +99,6 @@ mod intervals {
 
         pub fn add(&mut self, l: i64, r: i64) {
             // println!("[add] Adding [{0}, {1}]",l,r);
-            let i = 0;
             let ir = self.switches.partition_point(|&x| x <= r);
             let il = self.switches.partition_point(|&x| x < l);
             let mut insert = Vec::new();
@@ -122,6 +121,7 @@ mod intervals {
                 .fold(0, |acc, (&l, &r)| acc + r.abs_diff(l) + 1)
         }
 
+        #[allow(dead_code)]
         pub fn invert(&mut self)
         {
             self.switches.pop();
@@ -154,7 +154,7 @@ mod intervals {
             // println!("[intersect] After intersect:");
             // dbg!(&self.switches);
         }
-
+        #[allow(dead_code)]
         pub(crate) fn get_first(&self) -> i64 {
             self.switches[0]
         }
