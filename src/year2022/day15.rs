@@ -9,30 +9,27 @@ pub struct Day15<const P: i64>;
 
 impl<const P: i64> Day<2022, 15, Vec<Sensor>, u64> for Day15<P> {
     fn solve(input: Vec<Sensor>) -> u64 {
-        Self::sensor_excluded(&input,P,&mut IntervalArray::new())
+        Self::sensor_excluded(&input, P, &mut IntervalArray::new())
     }
 
     fn solve2(input: Vec<Sensor>) -> u64 {
         let r = P * 2; // so it seems
         let mut p = 0.0;
-        for i in 0..=r
-        {
+        for i in 0..=r {
             let mut ia = IntervalArray::new();
-            Self::sensor_excluded(&input,i,&mut ia);
-            ia.intersect(0,r);
-            
-            if let Some(f) = ia.get_first_non()
-            {
+            Self::sensor_excluded(&input, i, &mut ia);
+            ia.intersect(0, r);
+
+            if let Some(f) = ia.get_first_non() {
                 return f as u64 * 4000000 + i as u64;
             }
-            let pr = (i as f32/r as f32)*100.0;
-            if pr > p
-            {
-                println!("{}%",p);
+            let pr = (i as f32 / r as f32) * 100.0;
+            if pr > p {
+                println!("{}%", p);
                 p = pr.ceil();
             }
         }
-        panic!("sensor not found???");        
+        panic!("sensor not found???");
     }
     fn parse(input: &str) -> Vec<Sensor> {
         nom::multi::separated_list0(tag("\n"), parsing::sensor)(input)
@@ -41,10 +38,8 @@ impl<const P: i64> Day<2022, 15, Vec<Sensor>, u64> for Day15<P> {
     }
 }
 
-impl<const P:i64> Day15<P>
-{
-    
-    fn sensor_excluded(input: &Vec<Sensor>, k : i64, ia : &mut IntervalArray) -> u64 {
+impl<const P: i64> Day15<P> {
+    fn sensor_excluded(input: &Vec<Sensor>, k: i64, ia: &mut IntervalArray) -> u64 {
         let mut row_sensors = HashSet::new();
         for sensor in input {
             let d = d(&sensor.pos, &sensor.beacon);
@@ -55,8 +50,7 @@ impl<const P:i64> Day15<P>
 
             let dd = k.abs_diff(sensor.pos.y);
             // println!("[day15] distance to y = {0} is {1}",P,dd);
-            if d >= dd 
-            {
+            if d >= dd {
                 ia.add(
                     sensor.pos.x - (d.saturating_sub(dd) as i64),
                     sensor.pos.x + (d.saturating_sub(dd) as i64),
@@ -122,14 +116,12 @@ mod intervals {
         }
 
         #[allow(dead_code)]
-        pub fn invert(&mut self)
-        {
+        pub fn invert(&mut self) {
             self.switches.pop();
             self.switches.remove(0);
         }
 
-        pub fn intersect(&mut self, l : i64, r : i64)
-        {
+        pub fn intersect(&mut self, l: i64, r: i64) {
             // println!("[intersect] intersecting with [{0},{1}]",l,r);
             // dbg!(&self.switches);
             let il = self.switches.partition_point(|&x| x < l);
@@ -160,12 +152,10 @@ mod intervals {
         }
 
         pub(crate) fn get_first_non(&self) -> Option<i64> {
-            for (a,b) in self.switches.iter().skip(1).tuples()
-            {
-            //     println!("[get_first_non] checking ({0},{1}) for a gap of length 2", a,b);
-                if b - a == 2
-                {
-                    return Some(a+1);
+            for (a, b) in self.switches.iter().skip(1).tuples() {
+                //     println!("[get_first_non] checking ({0},{1}) for a gap of length 2", a,b);
+                if b - a == 2 {
+                    return Some(a + 1);
                 }
             }
             return None;
@@ -240,15 +230,14 @@ mod intervals {
             assert_eq!(ia.count(), 41);
         }
         #[test]
-        fn intersect_2()
-        {
+        fn intersect_2() {
             let mut ia = IntervalArray::new();
 
-            ia.add(3,7);
-            ia.add(10,13);
+            ia.add(3, 7);
+            ia.add(10, 13);
 
-            ia.intersect(7,14);
-            assert_eq!(ia.count(),5);
+            ia.intersect(7, 14);
+            assert_eq!(ia.count(), 5);
         }
     }
 }

@@ -90,4 +90,5 @@ mod tests {
         let result = Day15::<10>::solve_input2(TESTS_FILE_NAME);
         assert_eq!(result, 56000011);
     }
+    day!(16,1,20);
 }
