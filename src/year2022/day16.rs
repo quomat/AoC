@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use nom::error::Error;
 use nom_supreme::final_parser::final_parser;
@@ -46,40 +46,37 @@ impl ValveArena
         }
         
         let mut va = ValveArena{valves:map, paths};
-
-        va.explore(start);
+        va.explore();
 
         va
     }
-    fn explore(&mut self, idx : ValveIndex) -> Vec<(ValveIndex, u16)>
+    fn explore(&mut self)
     {
-        if let Some(_) = self.paths.get(&(idx, idx))
+        for idx in self.valves.keys()
         {
-            return Vec::new();
-        }
-        self.paths.insert((idx,idx),0);
-        let i = self.valves.get(&idx).unwrap();
-        let leads = i.leads.clone();
-        let mut modified = Vec::new();
-        for lead in leads
-        {
-            self.paths.insert((idx,lead),1);
-            let results = self.explore(lead);
-
-            for result in results
+            
+        
+            let mut batch = Vec::new();
+            batch.push(*idx);
+            let mut step = 0;
+            while !batch.is_empty()
             {
-                let curr = self.paths.get(&(idx,result.0));
-                match curr
+                let next = batch.clone();
+                batch = Vec::new();
+                for f in next
                 {
-                    Some(&x) if x <= result.1 + 1=> {},
-                    _ => {
-                        modified.push((result.0, result.1+1));
-                        self.paths.insert((idx,result.0), result.1+1);
-                    }
-                }
+                            self.paths.insert((*idx,f),step); 
+                            for neighbour in &self.valves.get(&f).unwrap().leads
+                            {
+                                if !self.paths.contains_key(&(*idx,*neighbour))
+                                {
+                                    batch.push(*neighbour);    
+                                }
+                            }
+                        }
+                step += 1;
             }
-        }
-        modified
+                    }
     }
 }
 
