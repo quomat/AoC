@@ -24,6 +24,7 @@ mod tests {
         };
     }
 
+
     day!(1, 1, 24000);
     day!(1, 2, 45000);
     day!(2, 1, 15);
@@ -90,5 +91,10 @@ mod tests {
         let result = Day15::<10>::solve_input2(TESTS_FILE_NAME);
         assert_eq!(result, 56000011);
     }
-    day!(16,1,20);
+
+    #[test]
+    fn test_day16_1(){
+        let result = Day16::<30>::solve_input1(TESTS_FILE_NAME);
+        assert_eq!(result,1651)
+    }
 }

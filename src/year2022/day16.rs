@@ -1,18 +1,41 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet};
 
 use nom::error::Error;
 use nom_supreme::final_parser::final_parser;
 
 use crate::day0::Day;
 
-pub struct Day16;
+pub struct Day16<const m : u16>;
 
-impl Day<2022, 16, Vec<Valve>, u64> for Day16 {
+impl<const m : u16> Day<2022, 16, Vec<Valve>, u64> for Day16<m> {
     fn solve(input: Vec<Valve>) -> u64 {
-        dbg!(&input);
         let va = ValveArena::new(input);
         dbg!(&va);
-        todo!()        
+        let mut r = m;
+        let mut current : ValveIndex = ['A','A'];
+        let mut water = 0;
+        let mut opened = HashSet::new();
+        while r > 0
+        {
+            let walk = |rem : u16,steps| rem.saturating_sub(steps + 1) ;
+            let flowf = |rem,(val,steps)| walk(rem,steps) as u64 * va.valves[&val].flow_rate;
+
+            let neighbours : Vec<([char; 2], u16)> = va.paths.iter()
+                .filter(|val| val.0.0 == current && !opened.contains(&val.0.1)).map(|val| (val.0.1,*val.1)).collect();
+            let max = *neighbours.iter().max_by_key(|&&t| flowf(r,t)).unwrap();
+            println!("===Minute {0}===",m-r);
+            println!("Going to valve {0:?}, it will take {1} minutes",max.0,max.1);
+            println!("This will release {0} pressure overall",flowf(r,max));
+            println!("Other candidates would be:");
+            dbg!(neighbours.iter().map(|&t| (t.0,flowf(r,t))).collect::<Vec<(ValveIndex,u64)>>());
+            r = walk(r,max.1);
+            water += flowf(r,max);
+
+            opened.insert(max.0);
+            current = max.0;
+        }
+        
+        water
     }
 
     fn parse(input: &str) -> Vec<Valve> {
@@ -29,14 +52,13 @@ impl Day<2022, 16, Vec<Valve>, u64> for Day16 {
 struct ValveArena
 {
     valves : HashMap<ValveIndex,Valve>,
-    paths : HashMap<(ValveIndex,ValveIndex),u16>
+    paths : HashMap<ValveIndex,HashMap<ValveIndex,u16>>
 }
 
 impl ValveArena
 {
     fn new(valves : Vec<Valve>) -> ValveArena
     {
-        let start = valves[0].idx;
         
         let mut map = HashMap::new();
         let paths = HashMap::new();
@@ -65,12 +87,14 @@ impl ValveArena
                 batch = Vec::new();
                 for f in next
                 {
-                            self.paths.insert((*idx,f),step); 
+                            self.paths.entry(*idx).and_modify(|map| {map.insert(f,step);}).or_insert(HashMap::new());
                             for neighbour in &self.valves.get(&f).unwrap().leads
                             {
-                                if !self.paths.contains_key(&(*idx,*neighbour))
+                                if let Some(n) = self.paths.get(idx)
                                 {
+                                    if n.contains_key(neighbour){ 
                                     batch.push(*neighbour);    
+                                    }
                                 }
                             }
                         }
@@ -86,7 +110,7 @@ type ValveIndex = [char;2];
 #[derive(Debug)]
 pub struct Valve {
     idx: ValveIndex,
-    flow_rate: u32,
+    flow_rate: u64,
     leads: Vec<ValveIndex>,
 }
 
@@ -99,7 +123,7 @@ mod parsing {
     
     use nom::character::complete::anychar;
     
-    use nom::character::complete::u32;
+    use nom::character::complete::u64;
     use nom::combinator::map;
     
     use nom::multi::separated_list0;
@@ -117,7 +141,7 @@ mod parsing {
         map(
             tuple((
                 preceded(tag("Valve "), idx),
-                preceded(tag(" has flow rate="), u32),
+                preceded(tag(" has flow rate="), u64),
                 preceded(
                     alt((
                         tag("; tunnels lead to valves "),
