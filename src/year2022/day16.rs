@@ -14,25 +14,9 @@ impl<const m : u16> Day<2022, 16, Vec<Valve>, u64> for Day16<m> {
         let mut r = m;
         let mut current : ValveIndex = ['A','A'];
         let mut water = 0;
-        let mut opened = HashSet::new();
+        let mut opened = HashSet::<ValveIndex>::new();
         while r > 0
         {
-            let walk = |rem : u16,steps| rem.saturating_sub(steps + 1) ;
-            let flowf = |rem,(val,steps)| walk(rem,steps) as u64 * va.valves[&val].flow_rate;
-
-            let neighbours : Vec<([char; 2], u16)> = va.paths.iter()
-                .filter(|val| val.0.0 == current && !opened.contains(&val.0.1)).map(|val| (val.0.1,*val.1)).collect();
-            let max = *neighbours.iter().max_by_key(|&&t| flowf(r,t)).unwrap();
-            println!("===Minute {0}===",m-r);
-            println!("Going to valve {0:?}, it will take {1} minutes",max.0,max.1);
-            println!("This will release {0} pressure overall",flowf(r,max));
-            println!("Other candidates would be:");
-            dbg!(neighbours.iter().map(|&t| (t.0,flowf(r,t))).collect::<Vec<(ValveIndex,u64)>>());
-            r = walk(r,max.1);
-            water += flowf(r,max);
-
-            opened.insert(max.0);
-            current = max.0;
         }
         
         water
