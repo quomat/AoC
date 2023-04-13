@@ -97,4 +97,10 @@ mod tests {
         let result = Day16::<30>::solve_input1(TESTS_FILE_NAME);
         assert_eq!(result,1651)
     }
+
+    #[test]
+    fn test_day16_2(){
+        let result = Day16::<26>::solve_input2(TESTS_FILE_NAME);
+        assert_eq!(result,1707)
+    }
 }
