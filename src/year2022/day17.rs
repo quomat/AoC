@@ -1,4 +1,4 @@
-use std::{cmp::max, ops};
+use std::{cmp::max, ops::{self, RangeInclusive}};
 
 use crate::day0::Day;
 
@@ -22,18 +22,18 @@ impl TryFrom<char> for Move {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq,Eq)]
 struct Point {
     x: u64,
     y: u64,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq,Eq)]
 struct Vector {
     x: u64,
     y: u64,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy,PartialEq,Eq)]
 struct Shape(&'static [Vector]);
 
 const SHAPES: &[Shape] = &[
@@ -82,11 +82,19 @@ impl ops::Add<Vector> for Point {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy,PartialEq,Eq)]
 struct EmbeddedShape {
     p: Point,
     shape: Shape,
 }
+
+impl PartialOrd for EmbeddedShape
+{
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.p.y.partial_cmp(&other.p.y)
+    }
+}
+
 
 fn intersect(s1: EmbeddedShape, s2: EmbeddedShape) -> bool {
     for &v1 in s1.shape.0 {
@@ -98,6 +106,26 @@ fn intersect(s1: EmbeddedShape, s2: EmbeddedShape) -> bool {
         }
     }
     return false;
+}
+fn rasterize<const W : u64, const DH : u64>(objs : &[EmbeddedShape], h0 : u64) -> Vec<bool> // [bool ; W * DH] 
+{
+    // x: 1..=7, y: 0..
+    let heights = h0..h0+DH;
+
+    let mut result = vec![false; (W * DH).try_into().unwrap()];
+
+    let mut set = |p : Point| {
+        let r = result.get_mut(((p.y-h0) * W + (p.x-1)) as usize);
+        if let Some(v) = r{
+            *v = true;
+        } 
+    };
+
+    for o in objs.iter().rev().take_while(|sh| sh.p.y >= h0)
+    {
+        set(o.p);
+    }
+    todo!()
 }
 
 fn tetris<F>(width: u64, n: usize, moves: Vec<Move>, draw: F) -> u64
@@ -158,7 +186,12 @@ where
 
             p = pn;
         }
-        world.push(EmbeddedShape { p, shape });
+        let new_elem =EmbeddedShape { p, shape }; 
+        match world.binary_search_by_key(&new_elem.p.y,|e| e.p.y)
+            {
+                Ok(pos) => world.insert(pos,new_elem),
+                Err(pos) => world.insert(pos,new_elem),
+            }
         h = max(h, p.y + max_y(shape));
         if h < 20 {
             // dbg!(h);
@@ -191,54 +224,13 @@ fn do_move(jet: bool, j: Move, p: Point) -> Point {
 impl Day<2022, 17, Vec<Move>, u64> for Day17 {
     fn solve(input: Vec<Move>) -> u64 {
         const W: u64 = 7;
-        let draw = |world: &[EmbeddedShape], curr: &EmbeddedShape, h: u64| {
-            #[derive(Clone, Copy)]
-            enum State {
-                Blank,
-                Stale,
-                Falling,
-            }
-            fn state_str(s: &State) -> &str {
-                match s {
-                    State::Blank => ".",
-                    State::Stale => "#",
-                    State::Falling => "@",
-                }
-            }
-            let w = W + 2;
-            let mut board = vec![State::Blank; (h * w) as usize];
-            for e in world {
-                for &v in e.shape.0 {
-                    let p = e.p + v;
-                    board[(w * (p.y - 1) + (p.x)) as usize] = State::Stale;
-                }
-            }
-            for &v in curr.shape.0 {
-                let p = curr.p + v;
-                board[(w * (p.y - 1) + (p.x)) as usize] = State::Falling;
-            }
-            let mut s = String::new();
-            for y in 0..h {
-                for x in 0..w {
-                    if x == 0 || x == w - 1 {
-                        s.push_str("|");
-                    } else {
-                        s.push_str(state_str(&board[(w * (h - y - 1) + x) as usize]));
-                    }
-                }
-                if y != h - 1 {
-                    s.push_str("\n");
-                }
-            }
-            // println!("{}",s);
-            // println!("+-------+");
-        };
 
-        tetris(W, 2022, input, draw)
+        tetris(W, 2022, input, draw::<W>)
     }
 
     fn solve2(input: Vec<Move>) -> u64 {
-        tetris(7, 1000000000000, input, |_, _, _| {})
+        const W : u64 = 7;
+        tetris(7, 1000000000000, input, draw::<7>)
     }
 
     fn parse(input: &str) -> Vec<Move> {
@@ -249,3 +241,47 @@ impl Day<2022, 17, Vec<Move>, u64> for Day17 {
             .collect()
     }
 }
+
+fn draw<const W : u64>(world: &[EmbeddedShape], curr: &EmbeddedShape, h: u64) {
+        #[derive(Clone, Copy)]
+        enum State {
+            Blank,
+            Stale,
+            Falling,
+        }
+        fn state_str(s: &State) -> &str {
+            match s {
+                State::Blank => ".",
+                State::Stale => "#",
+                State::Falling => "@",
+            }
+        }
+        let w = W + 2;
+        let mut board = vec![State::Blank; (h * w) as usize];
+        for e in world {
+            for &v in e.shape.0 {
+                let p = e.p + v;
+                board[(w * (p.y - 1) + (p.x)) as usize] = State::Stale;
+            }
+        }
+        for &v in curr.shape.0 {
+            let p = curr.p + v;
+            board[(w * (p.y - 1) + (p.x)) as usize] = State::Falling;
+        }
+        let mut s = String::new();
+        for y in 0..h {
+            for x in 0..w {
+                if x == 0 || x == w - 1 {
+                    s.push_str("|");
+                } else {
+                    s.push_str(state_str(&board[(w * (h - y - 1) + x) as usize]));
+                }
+            }
+            if y != h - 1 {
+                s.push_str("\n");
+            }
+        }
+        println!("{}",s);
+        println!("+-------+");
+    }
+
