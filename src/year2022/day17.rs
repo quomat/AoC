@@ -188,7 +188,7 @@ where
         let mut jet = false; // zaczynamy od spadania 1 w dół
         'fall: loop {
             jet = !jet;
-            // draw(&world, &EmbeddedShape { p, shape }, h + 10);
+            // draw(&world, &EmbeddedShape::new( p, shape ), h.saturating_sub(20));
             let pn = do_move(jet, moves[j % moves.len()], p);
             if jet {
                 j += 1;
@@ -220,6 +220,7 @@ where
             }
 
             p = pn;
+            // draw(&world[0..10.min(world.len())],&EmbeddedShape::new(p, shape ),h.saturating_sub(3));
         }
         let new_elem =EmbeddedShape::new(p, shape ); 
         match world.binary_search_by(|e| new_elem.p.y.cmp(&e.p.y) )
@@ -236,7 +237,7 @@ where
         if check_snapshot::<W>(&snapshot) && vh == 0{
             if !world_cache.cache.insert(snapshot.clone())
             {
-                draw(&world[0..10.min(world.len())],&new_elem,h.saturating_sub(3));
+                // draw(&world[0..10.min(world.len())],&new_elem,h.saturating_sub(3));
                 // kończymy
                 // konfiguracja się powtórzyła, więc wiemy jaka będzie przyszłość, mamy wzór na obliczenie wysokości dla dowolnego n
                 // dbg!(&world_cache.infos[&snapshot]);
@@ -244,7 +245,7 @@ where
                 let TetrisInfo { shapes, moves_idx, hmax } = world_cache.infos[&snapshot];
                 if moves_idx % moves.len() != j % moves.len() {continue;}
                 if shapes % SHAPES.len() != i % SHAPES.len() {continue;}
-                println!("Match found. KOŃCZYYYMYYY");
+                // println!("Match found. KOŃCZYYYMYYY");
                 let dh = h - hmax;
                 let di = i - shapes;
                 // let dj = (j + moves.len() - moves_idx) % moves.len(); // obejście tego że -1 % 5 = -1 -_-...
@@ -258,8 +259,8 @@ where
             else
             {
                 world_cache.infos.insert(snapshot,TetrisInfo { shapes: i, moves_idx: j, hmax: h });
-                dbg!(world_cache.infos.len());
-                println!("World cache, theoretical maximum: {0}, current: {1}",2_usize.pow((DH*W) as u32),world_cache.infos.len());
+                // dbg!(world_cache.infos.len());
+                // println!("World cache, theoretical maximum: {0}, current: {1}",2_usize.pow((DH*W) as u32),world_cache.infos.len());
             }
             }        
     }
@@ -310,12 +311,12 @@ impl Day<2022, 17, Vec<Move>, usize> for Day17 {
     fn solve(input: Vec<Move>) -> usize {
         const W: usize = 7;
 
-        tetris::<W,_>(2022, input, draw::<W,7>)
+        tetris::<W,_>(2022, input, draw::<W,20>)
     }
 
     fn solve2(input: Vec<Move>) -> usize {
         const W : usize = 7;
-        tetris::<W,_>(1000000000000, input, draw::<7,7>)
+        tetris::<W,_>(1000000000000, input, draw::<7,20>)
     }
 
     fn parse(input: &str) -> Vec<Move> {
@@ -346,14 +347,14 @@ fn draw<const W : usize, const H : usize>(world: &[EmbeddedShape], curr: &Embedd
         for e in world {
             for &v in e.shape.0 {
                 let p = e.p + v;
-                if p.y > h {
+                if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
                     board[(w * (p.y - 1 - h) + (p.x)) as usize] = State::Stale;
                 }
             }
         }
         for &v in curr.shape.0 {
             let p = curr.p + v;
-            if p.y > h{
+            if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
                 board[(w * (p.y - 1 - h) + (p.x)) as usize] = State::Falling;
             }
         }
