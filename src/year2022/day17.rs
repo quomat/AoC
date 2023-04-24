@@ -127,7 +127,7 @@ mod embedding{
                 }
             }
         }
-        return false;
+        false
     }
 }
 /// A function that takes a slice of a tetris board. From the list of shapes produces a bit array (ehh I need to get better at Rust)
@@ -135,7 +135,7 @@ fn rasterize<const W : usize, const DH : usize>(objs : &[EmbeddedShape], h0 : us
 {
     // x: 1..=7, y: 0..
     // let heights = h0..h0+DH;
-    let size : usize = (W*DH) as usize;
+    let size : usize = W*DH ;
     let mut result = bitvec![0; size];
 
     let mut set = |p : Point| {
@@ -225,13 +225,13 @@ where
         let new_elem =EmbeddedShape::new(p, shape ); 
         match world.binary_search_by(|e| new_elem.p.y.cmp(&e.p.y) )
         {
-            Ok(pos) => world.insert(pos,new_elem.clone()),
-            Err(pos) => world.insert(pos,new_elem.clone()),
+            Ok(pos) => world.insert(pos,new_elem),
+            Err(pos) => world.insert(pos,new_elem),
         }
         i += 1;
         h = max(h, p.y + max_y(shape));
         const DH :usize = 3;
-        let snapshot = rasterize::<W,DH>(&world[0..((DH*W) as usize).min(world.len())],h.saturating_sub(3)); // cannot be more than dh*w 
+        let snapshot = rasterize::<W,DH>(&world[0..((DH*W) ).min(world.len())],h.saturating_sub(3)); // cannot be more than dh*w 
 
         // dbg!(&snapshot);
         if check_snapshot::<W>(&snapshot) && vh == 0{
@@ -252,7 +252,7 @@ where
 
                 let m = (n - i)/di; 
                 // dbg!(m);
-                vh += (m as usize)*dh;
+                vh += (m )*dh;
                 // j += m*dj;
                 i += m*di;
             }
@@ -278,7 +278,7 @@ fn check_snapshot<const W : usize>(snapshot: &BitVec) -> bool {
             {
                 break false;
             }
-            if snapshot[i+j*W] == true{
+            if snapshot[i+j*W] {
                 break true;
             } 
             j += 1;
@@ -348,27 +348,27 @@ fn draw<const W : usize, const H : usize>(world: &[EmbeddedShape], curr: &Embedd
             for &v in e.shape.0 {
                 let p = e.p + v;
                 if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
-                    board[(w * (p.y - 1 - h) + (p.x)) as usize] = State::Stale;
+                    board[(w * (p.y - 1 - h) + (p.x)) ] = State::Stale;
                 }
             }
         }
         for &v in curr.shape.0 {
             let p = curr.p + v;
             if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
-                board[(w * (p.y - 1 - h) + (p.x)) as usize] = State::Falling;
+                board[(w * (p.y - 1 - h) + (p.x)) ] = State::Falling;
             }
         }
         let mut s = String::new();
         for y in 0..H {
             for x in 0..w {
                 if x == 0 || x == w - 1 {
-                    s.push_str("|");
+                    s.push('|');
                 } else {
-                    s.push_str(state_str(&board[(w * (H - y - 1) + x) as usize]));
+                    s.push_str(state_str(&board[(w * (H - y - 1) + x) ]));
                 }
             }
             if y != H - 1 {
-                s.push_str("\n");
+                s.push('\n');
             }
         }
         println!("{}",s);

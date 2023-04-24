@@ -33,7 +33,7 @@ impl<T> Node<T> {
 
     pub fn is_leaf(&self) -> bool {
         dbg!("[is_leaf}, checking...", self.borrow().children.len());
-        self.borrow().children.len() == 0
+        self.borrow().children.is_empty()
     }
 
     pub fn flatten_branches(&self) -> Vec<T>
@@ -91,7 +91,7 @@ where
     }
 
     for b in tb.children.iter() {
-        if let Some(r) = find_node(Node::clone(&b), val) {
+        if let Some(r) = find_node(Node::clone(b), val) {
             return Some(Node::clone(&r));
         }
     }
