@@ -172,7 +172,7 @@ struct TetrisCache
     infos : HashMap<BitVec,TetrisInfo>
 }
 
-fn tetris<const W : usize, F>(n: usize, moves: Vec<Move>, draw: F) -> usize
+fn tetris<const W : usize, F>(n: usize, moves: Vec<Move>, _draw: F) -> usize
 where
     F: Fn(&[EmbeddedShape], &EmbeddedShape, usize),
 {
@@ -188,7 +188,7 @@ where
         let mut jet = false; // zaczynamy od spadania 1 w dół
         'fall: loop {
             jet = !jet;
-            // draw(&world, &EmbeddedShape::new( p, shape ), h.saturating_sub(20));
+            // _draw(&world, &EmbeddedShape::new( p, shape ), h.saturating_sub(20));
             let pn = do_move(jet, moves[j % moves.len()], p);
             if jet {
                 j += 1;
@@ -220,7 +220,7 @@ where
             }
 
             p = pn;
-            // draw(&world[0..10.min(world.len())],&EmbeddedShape::new(p, shape ),h.saturating_sub(3));
+            // _draw(&world[0..10.min(world.len())],&EmbeddedShape::new(p, shape ),h.saturating_sub(3));
         }
         let new_elem =EmbeddedShape::new(p, shape ); 
         match world.binary_search_by(|e| new_elem.p.y.cmp(&e.p.y) )
@@ -237,7 +237,7 @@ where
         if check_snapshot::<W>(&snapshot) && vh == 0{
             if !world_cache.cache.insert(snapshot.clone())
             {
-                // draw(&world[0..10.min(world.len())],&new_elem,h.saturating_sub(3));
+                // _draw(&world[0..10.min(world.len())],&new_elem,h.saturating_sub(3));
                 // kończymy
                 // konfiguracja się powtórzyła, więc wiemy jaka będzie przyszłość, mamy wzór na obliczenie wysokości dla dowolnego n
                 // dbg!(&world_cache.infos[&snapshot]);
