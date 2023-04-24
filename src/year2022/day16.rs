@@ -7,6 +7,13 @@ use crate::day0::Day;
 
 pub struct Day16<const M: u16>;
 
+type CurrentSolveState = Vec<(
+            (ValveIndex, u16),
+            u64,
+            HashSet<ValveIndex>,
+            (ValveIndex, u16),
+        )>;
+
 impl<const M: u16> Day<2022, 16, Vec<Valve>, u64> for Day16<M> {
     fn solve(input: Vec<Valve>) -> u64 {
         let va = ValveArena::new(input);
@@ -43,12 +50,7 @@ impl<const M: u16> Day<2022, 16, Vec<Valve>, u64> for Day16<M> {
     fn solve2(input: Vec<Valve>) -> u64 {
         let va = ValveArena::new(input);
         // dbg!(&va);
-        let mut current: Vec<(
-            (ValveIndex, u16),
-            u64,
-            HashSet<ValveIndex>,
-            (ValveIndex, u16),
-        )> = vec![(
+        let mut current: CurrentSolveState = vec![(
             (['A', 'A'], M),
             0,
             va.valves
@@ -62,7 +64,7 @@ impl<const M: u16> Day<2022, 16, Vec<Valve>, u64> for Day16<M> {
         while !current.is_empty() {
             let mut new_current = Vec::new();
             dbg!(&current.len());
-            dbg!(&current.first().and_then(|v| Some(v.2.len())));
+            dbg!(&current.first().map(|v| v.2.len()));
             for c in current.iter() {
                 if c.1 > max {
                     max = c.1
@@ -116,8 +118,7 @@ impl ValveArena {
     }
     fn explore(&mut self) {
         for idx in self.valves.keys() {
-            let mut batch = Vec::new();
-            batch.push(*idx);
+            let mut batch = vec![*idx];
             let mut step = 0;
             while !batch.is_empty() {
                 let next = batch.clone();

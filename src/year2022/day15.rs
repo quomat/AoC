@@ -158,7 +158,7 @@ mod intervals {
                     return Some(a + 1);
                 }
             }
-            return None;
+            None
         }
     }
 

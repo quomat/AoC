@@ -71,7 +71,7 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
         let mut tail = Position { x: 0, y: 0 };
 
         let mut visited = HashSet::new();
-        visited.insert(tail.clone());
+        visited.insert(tail);
 
         for command in input {
             update_head(&mut head, command);
@@ -86,7 +86,7 @@ impl Day<2022, 9, Vec<Command>, usize> for Day9 {
         let mut rope = [Position::default(); N];
 
         let mut visited = HashSet::new();
-        visited.insert(rope[N - 1].clone());
+        visited.insert(rope[N - 1]);
         for mut command in input {
             while command.step > 0 {
                 update_head1(&mut rope[0], &command);
@@ -154,7 +154,7 @@ fn update_tail<const N: usize>(
         v[it].y += y_set;
 
         if let Some(ref mut set) = o_set {
-            set.insert(v[it].clone());
+            set.insert(v[it]);
         }
     }
 }
@@ -172,7 +172,7 @@ fn update_tail_single(t: &mut Position, h: &Position, mut o_set: Option<&mut Has
         t.y += y_set;
 
         if let Some(ref mut set) = o_set {
-            set.insert(t.clone());
+            set.insert(*t);
         }
     }
 }

@@ -58,7 +58,7 @@ mod monkeys {
 
     impl Clone for Item {
         fn clone(&self) -> Self {
-            Item(self.0.clone())
+            Item(self.0)
         }
     }
 
@@ -85,7 +85,7 @@ mod monkeys {
     }
 
     impl Operand {
-        fn into_arith<T>(&self, old: &T) -> T
+        fn get_arith<T>(&self, old: &T) -> T
         where
             T: Arithmeticable + Clone,
         {
@@ -111,7 +111,7 @@ mod monkeys {
             if let Some(r) = rem {
                 self.0 %= r as u64;
             } else {
-                self.0 = self.0 / 3;
+                self.0 /= 3;
             }
         }
     }
@@ -203,7 +203,7 @@ mod monkeys {
         }
 
         pub(crate) fn round(&mut self) {
-            let mut keys: Vec<u32> = self.arena.keys().map(|x| (*x).clone()).collect();
+            let mut keys: Vec<u32> = self.arena.keys().copied().collect();
             keys.sort();
             for index in keys {
                 //     dbg!(index);
@@ -285,8 +285,8 @@ mod monkeys {
         where
             T: Arithmeticable,
         {
-            let left = self.left.into_arith(old);
-            let right = self.right.into_arith(old);
+            let left = self.left.get_arith(old);
+            let right = self.right.get_arith(old);
             *old = <T>::compute(self.op, left, right);
         }
     }
@@ -346,9 +346,9 @@ mod monkeys {
         fn operand(input: &str) -> IResult<&str, Operand> {
             let operand_parser = alt((
                 map(tag("old"), |_| Operand::Old),
-                map(u64, |i| Operand::Number(i)),
+                map(u64, Operand::Number),
             ));
-            Ok(delimited(multispace0, operand_parser, multispace0)(input)?)
+            delimited(multispace0, operand_parser, multispace0)(input)
         }
 
         fn operation(input: &str) -> IResult<&str, ArithmeticalOperation> {
@@ -360,14 +360,14 @@ mod monkeys {
             ))(input)?;
             Ok((input, arith_op))
         }
-        fn statement<'a>(input: &'a str) -> IResult<&'a str, Statement> {
+        fn statement(input: &str) -> IResult<&str, Statement> {
             let statement_parser = map(
                 |x| (tag("new ="), operand, operation, operand).parse(x),
                 |(_, o1, op, o2)| Statement::new(o1, op, o2),
             );
-            Ok(delimited(multispace0, statement_parser, multispace0)(
+            delimited(multispace0, statement_parser, multispace0)(
                 input,
-            )?)
+            )
         }
         impl FromStr for Statement {
             type Err = Error<String>;
@@ -489,8 +489,8 @@ mod monkeys {
 
                 assert_eq!(result.1.monkeyindex_if[&true], 2);
                 assert_eq!(result.1.monkeyindex_if[&false], 3);
-                assert_eq!((result.1.test_fn)(&Item(23)), true);
-                assert_eq!((result.1.test_fn)(&Item(24)), false);
+                assert!((result.1.test_fn)(&Item(23)));
+                assert!(!(result.1.test_fn)(&Item(24)));
             }
 
             #[test]
@@ -517,8 +517,8 @@ mod monkeys {
                 );
                 assert_eq!(monke.test.monkeyindex_if[&true], 2);
                 assert_eq!(monke.test.monkeyindex_if[&false], 3);
-                assert_eq!((monke.test.test_fn)(&Item(23)), true);
-                assert_eq!((monke.test.test_fn)(&Item(24)), false);
+                assert!((monke.test.test_fn)(&Item(23)));
+                assert!(!(monke.test.test_fn)(&Item(24)));
             }
         }
     }

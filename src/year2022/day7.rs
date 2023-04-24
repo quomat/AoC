@@ -25,18 +25,17 @@ impl FromStr for ConsoleCommand {
                         Err(())
                     }
                 }
-                Some("ls") => return Ok(ConsoleCommand::Ls),
+                Some("ls") => Ok(ConsoleCommand::Ls),
                 _ => unreachable!(),
             },
             Some(number) => number
                 .parse::<u64>()
                 .ok()
                 .and_then(|n| {
-                    ws.next()
-                        .and_then(|file_name| Some(File(n, String::from(file_name))))
+                    ws.next().map(|file_name| File(n, String::from(file_name)))
                 })
                 .ok_or(()),
-            None => return Err(()),
+            None => Err(()),
         }
     }
 }
@@ -78,7 +77,7 @@ impl Day<2022, 7, Node<Entry>, u64> for Day7 {
             .lines()
             .map(str::parse::<ConsoleCommand>)
             .filter_map(Result::ok);
-        let mut n: Node<Entry> = Node::new(Entry { size: None });
+        let n: Node<Entry> = Node::new(Entry { size: None });
         // let first_cmd = commands.next().unwrap();
         // dbg!(&first_cmd);
 
@@ -88,7 +87,7 @@ impl Day<2022, 7, Node<Entry>, u64> for Day7 {
         //     _ => unreachable!(),
         // }
 
-        build(Node::clone(&mut n), &mut commands);
+        build(Node::clone(&n), &mut commands);
         tree_size(Node::clone(&n));
         n
     }
@@ -115,12 +114,12 @@ fn build(mut node: Node<Entry>, it: &mut impl Iterator<Item = ConsoleCommand>) {
 
 fn tree_size(node: Node<Entry>) {
     let mut gmut = node.borrow_mut();
-    if gmut.value.size == None {
+    if gmut.value.size.is_none() {
         gmut.value.size = Some(
             gmut.children
                 .iter_mut()
-                .map(|mut c| {
-                    tree_size(Node::clone(&mut c));
+                .map(|c| {
+                    tree_size(Node::clone(c));
                     c.borrow().value.size.unwrap()
                 })
                 .sum(),

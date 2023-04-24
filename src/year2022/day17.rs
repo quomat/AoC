@@ -231,7 +231,7 @@ where
         i += 1;
         h = max(h, p.y + max_y(shape));
         const DH :usize = 3;
-        let snapshot = rasterize::<W,DH>(&world[0..((DH*W) ).min(world.len())],h.saturating_sub(3)); // cannot be more than dh*w 
+        let snapshot = rasterize::<W,DH>(&world[0..(DH*W).min(world.len())],h.saturating_sub(3)); // cannot be more than dh*w 
 
         // dbg!(&snapshot);
         if check_snapshot::<W>(&snapshot) && vh == 0{
@@ -348,14 +348,14 @@ fn draw<const W : usize, const H : usize>(world: &[EmbeddedShape], curr: &Embedd
             for &v in e.shape.0 {
                 let p = e.p + v;
                 if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
-                    board[(w * (p.y - 1 - h) + (p.x)) ] = State::Stale;
+                    board[w * (p.y - 1 - h) + (p.x) ] = State::Stale;
                 }
             }
         }
         for &v in curr.shape.0 {
             let p = curr.p + v;
             if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
-                board[(w * (p.y - 1 - h) + (p.x)) ] = State::Falling;
+                board[w * (p.y - 1 - h) + (p.x) ] = State::Falling;
             }
         }
         let mut s = String::new();
@@ -364,7 +364,7 @@ fn draw<const W : usize, const H : usize>(world: &[EmbeddedShape], curr: &Embedd
                 if x == 0 || x == w - 1 {
                     s.push('|');
                 } else {
-                    s.push_str(state_str(&board[(w * (H - y - 1) + x) ]));
+                    s.push_str(state_str(&board[w * (H - y - 1) + x ]));
                 }
             }
             if y != H - 1 {

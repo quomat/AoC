@@ -18,7 +18,7 @@ impl Day<2022, 12, HeightMap, u32> for Day12 {
         let mut visited: Vec<Vec<Option<u32>>> = vec![vec![None; m]; n];
         loop {
             let incoming = opens.clone();
-            if incoming.len() == 0 {
+            if incoming.is_empty() {
                 return u32::MAX;
             }
             opens.clear();
@@ -27,7 +27,7 @@ impl Day<2022, 12, HeightMap, u32> for Day12 {
                 if open == input.end {
                     return steps;
                 }
-                if let Some(_) = visited[open.0][open.1] {
+                if visited[open.0][open.1].is_some() {
                     continue;
                 } else {
                     visited[open.0][open.1] = Some(steps);
@@ -64,12 +64,11 @@ impl Day<2022, 12, HeightMap, u32> for Day12 {
             .clone()
             .into_iter()
             .enumerate()
-            .map(move |(i, b)| {
+            .flat_map(move |(i, b)| {
                 b.into_iter()
                     .enumerate()
                     .filter_map(move |(j, b)| if b == b'a' { Some((i, j)) } else { None })
             })
-            .flatten()
             .collect();
 
         starting_pos

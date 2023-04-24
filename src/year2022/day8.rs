@@ -43,9 +43,9 @@ impl Day<2022, 8, Vec<Vec<u32>>, usize> for Day8 {
             .collect()
     }
 }
-
+type Ray = Box<dyn Fn(i32, i32) -> (i32, i32)>;
 fn scenic_score(forest: &Vec<Vec<u32>>, i: usize, j: usize) -> usize {
-    let rays: Vec<Box<dyn Fn(i32, i32) -> (i32, i32)>> = vec![
+    let rays: Vec<Ray> = vec![
         Box::new(move |i, j| (i - 1, j)),
         Box::new(move |i, j| (i + 1, j)),
         Box::new(move |i, j| (i, j - 1)),
@@ -53,7 +53,7 @@ fn scenic_score(forest: &Vec<Vec<u32>>, i: usize, j: usize) -> usize {
     ];
     rays.iter()
         .map(|f| raycast(f, forest, i, j))
-        .fold(1, |x, y| x * y)
+        .product()
 }
 
 fn raycast<F>(f: F, forest: &Vec<Vec<u32>>, i0: usize, j0: usize) -> usize
@@ -81,7 +81,7 @@ where
         }
     }
     println!("[raycast] finished. , seen {0} trees", s);
-    return s;
+    s
 }
 
 fn scavenge<F, G>(input: F, mut visibility: G, n: usize)

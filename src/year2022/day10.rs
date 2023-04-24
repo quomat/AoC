@@ -117,7 +117,7 @@ impl Day<2022, 10, Vec<Instruction>, ComputerOutput> for Day10 {
         let noop_parser = map(tag::<_, _, Error<_>>("noop"), |_| Instruction::Noop);
         let num_parser = map_res(recognize(preceded(opt(tag("-")), digit1)), i32::from_str);
 
-        let addx_parser = map(preceded(tag("addx "), num_parser), |n| Instruction::AddX(n));
+        let addx_parser = map(preceded(tag("addx "), num_parser), Instruction::AddX);
 
         let comm_parser = all_consuming(alt((noop_parser, addx_parser)));
 

@@ -145,7 +145,7 @@ mod tests {
         let packet1 = packet(p1).finish().unwrap().1;
         let packet2 = packet(p2).finish().unwrap().1;
 
-        assert_eq!(packet1 < packet2, true);
+        assert!(packet1 < packet2);
     }
 }
 mod parsers {
@@ -157,13 +157,13 @@ mod parsers {
     use nom::{branch::alt, bytes::complete::tag, IResult};
 
     pub(crate) fn packet(input: &str) -> IResult<&str, Packet> {
-        Ok(alt((
+        alt((
             map(cc::u32, Packet::Integer),
             map(
                 delimited(tag("["), separated_list0(tag(","), packet), tag("]")),
                 Packet::Complex,
             ),
-        ))(input)?)
+        ))(input)
     }
 
     #[cfg(test)]

@@ -62,7 +62,7 @@ pub fn parse_own2(enemy: Figure, s: char) -> Figure {
 fn parse_by_variant(input: &str, variant: bool) -> Vec<(Figure, Figure)> {
     let v = input.split('\n');
     v.filter_map(|s| {
-        let a = s.chars().nth(0).map(parse_enemy);
+        let a = s.chars().next().map(parse_enemy);
         let b = a.and_then(|enemy| {
             s.chars().nth(2).map(|x| {
                 if variant {
