@@ -172,8 +172,8 @@ impl World {
 
         if p.y < self.leftup.y {
             //     println!("[World::add_point] Resizing to the up...");
-            let _diff = self.leftup.y - p.y;
-            let new_atoms: VecDeque<Weak<Entity>> = {let v = Vec::with_capacity(); v.into()};
+            let diff = self.leftup.y - p.y;
+            let new_atoms: VecDeque<Weak<Entity>> = { let mut v = VecDeque::with_capacity(diff as usize); for _ in 0..diff as usize { v.push_back(Weak::new());} v };
             for column in self.atoms.iter_mut() {
                 let mut new_column = new_atoms.clone();
                 prepend(column, &mut new_column)
@@ -181,7 +181,8 @@ impl World {
             self.leftup.y = p.y;
         } else if p.y > self.rightdown.y {
             //     println!("[World::add_point] Resizing to the down...");
-            let new_atoms: VecDeque<Weak<Entity>> = {let v = Vec::with_capacity(3); v.into()};
+            let diff = p.y - self.rightdown.y + 1;
+            let new_atoms: VecDeque<Weak<Entity>> = { let mut v = VecDeque::with_capacity(diff  as usize); for _ in 0..diff  as usize { v.push_back(Weak::new());} v };
             for column in self.atoms.iter_mut() {
                 let mut new_column = new_atoms.clone();
                 column.append(&mut new_column);
