@@ -1,6 +1,10 @@
-use std::{cmp::max, ops, collections::{HashSet, HashMap}};
+use std::{
+    cmp::max,
+    collections::{HashMap, HashSet},
+    ops,
+};
 
-use bitvec::{vec::BitVec, bitvec};
+use bitvec::{bitvec, vec::BitVec};
 
 use crate::{day0::Day, year2022::day17::embedding::intersect};
 
@@ -26,18 +30,18 @@ impl TryFrom<char> for Move {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Point {
     x: usize,
     y: usize,
 }
-#[derive(Debug, Clone, Copy, PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Vector {
     x: usize,
     y: usize,
 }
 
-#[derive(Debug,Clone, Copy,PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Shape(&'static [Vector]);
 
 const SHAPES: &[Shape] = &[
@@ -85,38 +89,36 @@ impl ops::Add<Vector> for Point {
         }
     }
 }
-mod embedding{
+mod embedding {
     use std::marker::PhantomData;
 
     use super::{Point, Shape};
 
-    
-
-    #[derive(Debug,Clone, Copy,PartialEq,Eq)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct EmbeddedShape {
         pub(super) p: Point,
         pub(super) shape: Shape,
-        phantom : PhantomData<u32>
+        phantom: PhantomData<u32>,
     }
 
-    impl EmbeddedShape
-    {
-        pub(super) fn new(p : Point, shape : Shape) -> EmbeddedShape
-        {
+    impl EmbeddedShape {
+        pub(super) fn new(p: Point, shape: Shape) -> EmbeddedShape {
             // if p.x < 1{
             //     panic!("x=0 is a wall. A shape shouldn't be inside a wall.");
             // }
-            EmbeddedShape { p, shape, phantom: PhantomData }
+            EmbeddedShape {
+                p,
+                shape,
+                phantom: PhantomData,
+            }
         }
     }
 
-    impl PartialOrd for EmbeddedShape
-    {
+    impl PartialOrd for EmbeddedShape {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             self.p.y.partial_cmp(&other.p.y)
         }
     }
-
 
     pub fn intersect(s1: EmbeddedShape, s2: EmbeddedShape) -> bool {
         for &v1 in s1.shape.0 {
@@ -131,53 +133,54 @@ mod embedding{
     }
 }
 /// A function that takes a slice of a tetris board. From the list of shapes produces a bit array (ehh I need to get better at Rust)
-fn rasterize<const W : usize, const DH : usize>(objs : &[EmbeddedShape], h0 : usize) -> BitVec // [bool ; W * DH] 
+fn rasterize<const W: usize, const DH: usize>(objs: &[EmbeddedShape], h0: usize) -> BitVec // [bool ; W * DH]
 {
     // x: 1..=7, y: 0..
     // let heights = h0..h0+DH;
-    let size : usize = W*DH ;
+    let size: usize = W * DH;
     let mut result = bitvec![0; size];
 
-    let mut set = |p : Point| {
-        let idx = p.y.checked_sub(h0).and_then(|x| TryInto::<usize>::try_into(x*W+(p.x-1)).ok());
-        if let Some(i) = idx{
+    let mut set = |p: Point| {
+        let idx =
+            p.y.checked_sub(h0)
+                .and_then(|x| TryInto::<usize>::try_into(x * W + (p.x - 1)).ok());
+        if let Some(i) = idx {
             let r = result.get_mut(i);
-            if let Some(mut v) = r{
+            if let Some(mut v) = r {
                 *v = true;
-            } 
+            }
         }
     };
 
-    for o in objs
-    {
-        for v in o.shape.0
-        {
-            set(o.p+*v);
+    for o in objs {
+        for v in o.shape.0 {
+            set(o.p + *v);
         }
     }
 
     result
 }
 #[derive(Debug)]
-struct TetrisInfo
-{
-    shapes : usize,
-    moves_idx : usize,
-    hmax : usize
+struct TetrisInfo {
+    shapes: usize,
+    moves_idx: usize,
+    hmax: usize,
 }
 
-struct TetrisCache
-{
-    cache : HashSet<BitVec>,
-    infos : HashMap<BitVec,TetrisInfo>
+struct TetrisCache {
+    cache: HashSet<BitVec>,
+    infos: HashMap<BitVec, TetrisInfo>,
 }
 
-fn tetris<const W : usize, F>(n: usize, moves: Vec<Move>, _draw: F) -> usize
+fn tetris<const W: usize, F>(n: usize, moves: Vec<Move>, _draw: F) -> usize
 where
     F: Fn(&[EmbeddedShape], &EmbeddedShape, usize),
 {
-    let mut world : Vec<EmbeddedShape> = Vec::new();
-    let mut world_cache = TetrisCache{ cache: HashSet::new(), infos : HashMap::new()};
+    let mut world: Vec<EmbeddedShape> = Vec::new();
+    let mut world_cache = TetrisCache {
+        cache: HashSet::new(),
+        infos: HashMap::new(),
+    };
     let mut h = 0;
     let mut vh = 0;
     let mut j = 0;
@@ -222,68 +225,80 @@ where
             p = pn;
             // _draw(&world[0..10.min(world.len())],&EmbeddedShape::new(p, shape ),h.saturating_sub(3));
         }
-        let new_elem =EmbeddedShape::new(p, shape ); 
-        match world.binary_search_by(|e| new_elem.p.y.cmp(&e.p.y) )
-        {
-            Ok(pos) => world.insert(pos,new_elem),
-            Err(pos) => world.insert(pos,new_elem),
+        let new_elem = EmbeddedShape::new(p, shape);
+        match world.binary_search_by(|e| new_elem.p.y.cmp(&e.p.y)) {
+            Ok(pos) => world.insert(pos, new_elem),
+            Err(pos) => world.insert(pos, new_elem),
         }
         i += 1;
         h = max(h, p.y + max_y(shape));
-        const DH :usize = 3;
-        let snapshot = rasterize::<W,DH>(&world[0..(DH*W).min(world.len())],h.saturating_sub(3)); // cannot be more than dh*w 
+        const DH: usize = 3;
+        let snapshot =
+            rasterize::<W, DH>(&world[0..(DH * W).min(world.len())], h.saturating_sub(3)); // cannot be more than dh*w
 
         // dbg!(&snapshot);
-        if check_snapshot::<W>(&snapshot) && vh == 0{
-            if !world_cache.cache.insert(snapshot.clone())
-            {
+        if check_snapshot::<W>(&snapshot) && vh == 0 {
+            if !world_cache.cache.insert(snapshot.clone()) {
                 // _draw(&world[0..10.min(world.len())],&new_elem,h.saturating_sub(3));
                 // kończymy
                 // konfiguracja się powtórzyła, więc wiemy jaka będzie przyszłość, mamy wzór na obliczenie wysokości dla dowolnego n
                 // dbg!(&world_cache.infos[&snapshot]);
                 // dbg!(&snapshot);
-                let TetrisInfo { shapes, moves_idx, hmax } = world_cache.infos[&snapshot];
-                if moves_idx % moves.len() != j % moves.len() {continue;}
-                if shapes % SHAPES.len() != i % SHAPES.len() {continue;}
+                let TetrisInfo {
+                    shapes,
+                    moves_idx,
+                    hmax,
+                } = world_cache.infos[&snapshot];
+                if moves_idx % moves.len() != j % moves.len() {
+                    continue;
+                }
+                if shapes % SHAPES.len() != i % SHAPES.len() {
+                    continue;
+                }
                 // println!("Match found. KOŃCZYYYMYYY");
                 let dh = h - hmax;
                 let di = i - shapes;
                 // let dj = (j + moves.len() - moves_idx) % moves.len(); // obejście tego że -1 % 5 = -1 -_-...
 
-                let m = (n - i)/di; 
+                let m = (n - i) / di;
                 // dbg!(m);
-                vh += (m )*dh;
+                vh += (m) * dh;
                 // j += m*dj;
-                i += m*di;
-            }
-            else
-            {
-                world_cache.infos.insert(snapshot,TetrisInfo { shapes: i, moves_idx: j, hmax: h });
+                i += m * di;
+            } else {
+                world_cache.infos.insert(
+                    snapshot,
+                    TetrisInfo {
+                        shapes: i,
+                        moves_idx: j,
+                        hmax: h,
+                    },
+                );
                 // dbg!(world_cache.infos.len());
                 // println!("World cache, theoretical maximum: {0}, current: {1}",2_usize.pow((DH*W) as u32),world_cache.infos.len());
             }
-            }        
+        }
     }
 
     h + vh
 }
 
-fn check_snapshot<const W : usize>(snapshot: &BitVec) -> bool {
+fn check_snapshot<const W: usize>(snapshot: &BitVec) -> bool {
     let mut columns = 0;
-    for i in 0..W{
+    for i in 0..W {
         let mut j = 0;
-        let any1 = loop
-        {
-            if i + j*W >= snapshot.len()
-            {
+        let any1 = loop {
+            if i + j * W >= snapshot.len() {
                 break false;
             }
-            if snapshot[i+j*W] {
+            if snapshot[i + j * W] {
                 break true;
-            } 
+            }
             j += 1;
         };
-        if !any1 {columns += 1;}
+        if !any1 {
+            columns += 1;
+        }
     }
     columns == 0
 }
@@ -311,12 +326,12 @@ impl Day<2022, 17, Vec<Move>, usize> for Day17 {
     fn solve(input: Vec<Move>) -> usize {
         const W: usize = 7;
 
-        tetris::<W,_>(2022, input, draw::<W,20>)
+        tetris::<W, _>(2022, input, draw::<W, 20>)
     }
 
     fn solve2(input: Vec<Move>) -> usize {
-        const W : usize = 7;
-        tetris::<W,_>(1000000000000, input, draw::<7,20>)
+        const W: usize = 7;
+        tetris::<W, _>(1000000000000, input, draw::<7, 20>)
     }
 
     fn parse(input: &str) -> Vec<Move> {
@@ -328,90 +343,79 @@ impl Day<2022, 17, Vec<Move>, usize> for Day17 {
     }
 }
 
-fn draw<const W : usize, const H : usize>(world: &[EmbeddedShape], curr: &EmbeddedShape, h: usize) {
-        #[derive(Clone, Copy)]
-        enum State {
-            Blank,
-            Stale,
-            Falling,
-        }
-        fn state_str(s: &State) -> &str {
-            match s {
-                State::Blank => ".",
-                State::Stale => "#",
-                State::Falling => "@",
-            }
-        }
-        let w = W + 2;
-        let mut board = vec![State::Blank; H * w];
-        for e in world {
-            for &v in e.shape.0 {
-                let p = e.p + v;
-                if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
-                    board[w * (p.y - 1 - h) + (p.x) ] = State::Stale;
-                }
-            }
-        }
-        for &v in curr.shape.0 {
-            let p = curr.p + v;
-            if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len(){
-                board[w * (p.y - 1 - h) + (p.x) ] = State::Falling;
-            }
-        }
-        let mut s = String::new();
-        for y in 0..H {
-            for x in 0..w {
-                if x == 0 || x == w - 1 {
-                    s.push('|');
-                } else {
-                    s.push_str(state_str(&board[w * (H - y - 1) + x ]));
-                }
-            }
-            if y != H - 1 {
-                s.push('\n');
-            }
-        }
-        println!("{}",s);
-        println!("+-------+");
+fn draw<const W: usize, const H: usize>(world: &[EmbeddedShape], curr: &EmbeddedShape, h: usize) {
+    #[derive(Clone, Copy)]
+    enum State {
+        Blank,
+        Stale,
+        Falling,
     }
+    fn state_str(s: &State) -> &str {
+        match s {
+            State::Blank => ".",
+            State::Stale => "#",
+            State::Falling => "@",
+        }
+    }
+    let w = W + 2;
+    let mut board = vec![State::Blank; H * w];
+    for e in world {
+        for &v in e.shape.0 {
+            let p = e.p + v;
+            if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len() {
+                board[w * (p.y - 1 - h) + (p.x)] = State::Stale;
+            }
+        }
+    }
+    for &v in curr.shape.0 {
+        let p = curr.p + v;
+        if p.y > h && w * (p.y - 1 - h) + (p.x) < board.len() {
+            board[w * (p.y - 1 - h) + (p.x)] = State::Falling;
+        }
+    }
+    let mut s = String::new();
+    for y in 0..H {
+        for x in 0..w {
+            if x == 0 || x == w - 1 {
+                s.push('|');
+            } else {
+                s.push_str(state_str(&board[w * (H - y - 1) + x]));
+            }
+        }
+        if y != H - 1 {
+            s.push('\n');
+        }
+    }
+    println!("{}", s);
+    println!("+-------+");
+}
 
 #[cfg(test)]
-mod tetris_tests
-{
-    use super::{SHAPES, EmbeddedShape, Point, rasterize};
+mod tetris_tests {
+    use super::{rasterize, EmbeddedShape, Point, SHAPES};
     use bitvec::prelude::*;
-  #[test]
-    fn rasterize_test()
-    {
+    #[test]
+    fn rasterize_test() {
         let l = SHAPES[2];
-        let shape = EmbeddedShape::new(Point { x: 2, y: 1 },l);
+        let shape = EmbeddedShape::new(Point { x: 2, y: 1 }, l);
 
-        let result = rasterize::<7,4>(&[shape],0);
+        let result = rasterize::<7, 4>(&[shape], 0);
         dbg!(&result);
-        let should = 
-        bits![
-        0, 0, 0, 0, 0,0,0,
-        0, 1,  1,  1, 0,0,0,
-        0, 0, 0, 1, 0,0,0,
-        0, 0, 0, 1, 0,0,0,
+        let should = bits![
+            0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
         ];
-        assert_eq!(result,should);
-    }  
-  #[test]
-    fn rasterize_out_of_bounds()
-    {
+        assert_eq!(result, should);
+    }
+    #[test]
+    fn rasterize_out_of_bounds() {
         let l = SHAPES[1];
-        let shape = EmbeddedShape::new(Point { x: 2, y: 2 },l);
+        let shape = EmbeddedShape::new(Point { x: 2, y: 2 }, l);
 
-        let result = rasterize::<7,4>(&[shape],0);
+        let result = rasterize::<7, 4>(&[shape], 0);
         dbg!(&result);
-        let should = 
-        bits![
-        0, 0, 0, 0, 0,0,0,
-        0, 0,  0,  0, 0,0,0,
-        0, 0, 1, 0, 0,0,0,
-        0, 1, 1, 1, 0,0,0,
+        let should = bits![
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
         ];
-        assert_eq!(result,should);
-    }  
+        assert_eq!(result, should);
+    }
 }

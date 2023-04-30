@@ -344,10 +344,8 @@ mod monkeys {
         }
 
         fn operand(input: &str) -> IResult<&str, Operand> {
-            let operand_parser = alt((
-                map(tag("old"), |_| Operand::Old),
-                map(u64, Operand::Number),
-            ));
+            let operand_parser =
+                alt((map(tag("old"), |_| Operand::Old), map(u64, Operand::Number)));
             delimited(multispace0, operand_parser, multispace0)(input)
         }
 
@@ -365,9 +363,7 @@ mod monkeys {
                 |x| (tag("new ="), operand, operation, operand).parse(x),
                 |(_, o1, op, o2)| Statement::new(o1, op, o2),
             );
-            delimited(multispace0, statement_parser, multispace0)(
-                input,
-            )
+            delimited(multispace0, statement_parser, multispace0)(input)
         }
         impl FromStr for Statement {
             type Err = Error<String>;

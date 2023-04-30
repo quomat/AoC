@@ -31,9 +31,7 @@ impl FromStr for ConsoleCommand {
             Some(number) => number
                 .parse::<u64>()
                 .ok()
-                .and_then(|n| {
-                    ws.next().map(|file_name| File(n, String::from(file_name)))
-                })
+                .and_then(|n| ws.next().map(|file_name| File(n, String::from(file_name))))
                 .ok_or(()),
             None => Err(()),
         }

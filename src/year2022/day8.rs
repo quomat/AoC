@@ -51,9 +51,7 @@ fn scenic_score(forest: &Vec<Vec<u32>>, i: usize, j: usize) -> usize {
         Box::new(move |i, j| (i, j - 1)),
         Box::new(move |i, j| (i, j + 1)),
     ];
-    rays.iter()
-        .map(|f| raycast(f, forest, i, j))
-        .product()
+    rays.iter().map(|f| raycast(f, forest, i, j)).product()
 }
 
 fn raycast<F>(f: F, forest: &Vec<Vec<u32>>, i0: usize, j0: usize) -> usize

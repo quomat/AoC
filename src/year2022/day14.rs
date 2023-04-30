@@ -145,10 +145,11 @@ impl World {
         self.rightdown.y - self.leftup.y + 1
     }
 
-    fn initialize_weaks(x : usize, y : usize) -> VecDeque<VecDeque<Weak<Entity>>>
-    {
+    fn initialize_weaks(x: usize, y: usize) -> VecDeque<VecDeque<Weak<Entity>>> {
         let mut v = Vec::with_capacity(y);
-        for _ in 0..y{ v.push(Weak::new())}
+        for _ in 0..y {
+            v.push(Weak::new())
+        }
         vec![v.into(); x].into()
     }
 
@@ -157,7 +158,8 @@ impl World {
         if p.x < self.leftup.x {
             //     println!("[World::add_point] Resizing to the left...");
             let diff = self.leftup.x - p.x;
-            let mut new_atoms: VecDeque<VecDeque<Weak<Entity>>> = Self::initialize_weaks(diff as usize, self.height() as usize);
+            let mut new_atoms: VecDeque<VecDeque<Weak<Entity>>> =
+                Self::initialize_weaks(diff as usize, self.height() as usize);
             prepend(&mut self.atoms, &mut new_atoms);
             self.leftup.x = p.x;
         } else if p.x > self.rightdown.x {
@@ -165,7 +167,7 @@ impl World {
             let diff = p.x - self.rightdown.x + 1;
 
             let mut new_atoms: VecDeque<VecDeque<Weak<Entity>>> =
-            Self::initialize_weaks(diff as usize, self.height() as usize);
+                Self::initialize_weaks(diff as usize, self.height() as usize);
             self.atoms.append(&mut new_atoms);
             self.rightdown.x = p.x;
         }
@@ -173,7 +175,13 @@ impl World {
         if p.y < self.leftup.y {
             //     println!("[World::add_point] Resizing to the up...");
             let diff = self.leftup.y - p.y;
-            let new_atoms: VecDeque<Weak<Entity>> = { let mut v = VecDeque::with_capacity(diff as usize); for _ in 0..diff as usize { v.push_back(Weak::new());} v };
+            let new_atoms: VecDeque<Weak<Entity>> = {
+                let mut v = VecDeque::with_capacity(diff as usize);
+                for _ in 0..diff as usize {
+                    v.push_back(Weak::new());
+                }
+                v
+            };
             for column in self.atoms.iter_mut() {
                 let mut new_column = new_atoms.clone();
                 prepend(column, &mut new_column)
@@ -182,7 +190,13 @@ impl World {
         } else if p.y > self.rightdown.y {
             //     println!("[World::add_point] Resizing to the down...");
             let diff = p.y - self.rightdown.y + 1;
-            let new_atoms: VecDeque<Weak<Entity>> = { let mut v = VecDeque::with_capacity(diff  as usize); for _ in 0..diff  as usize { v.push_back(Weak::new());} v };
+            let new_atoms: VecDeque<Weak<Entity>> = {
+                let mut v = VecDeque::with_capacity(diff as usize);
+                for _ in 0..diff as usize {
+                    v.push_back(Weak::new());
+                }
+                v
+            };
             for column in self.atoms.iter_mut() {
                 let mut new_column = new_atoms.clone();
                 column.append(&mut new_column);
@@ -216,9 +230,7 @@ impl World {
     fn get(&self, p: Point) -> Option<Weak<Entity>> {
         let x = self.get_x(p.x)?;
         let y = self.get_y(p.y)?;
-        self.atoms
-            .get(x)
-            .and_then(|col| col.get(y).cloned())
+        self.atoms.get(x).and_then(|col| col.get(y).cloned())
     }
 
     pub(crate) fn drop(&mut self) -> Option<Entity> {
@@ -240,13 +252,11 @@ impl World {
                     x: pos.x + 1,
                 },
             ];
-            let next = candidates
-                .into_iter()
-                .find(|&p| {
-                    self.get(p)
-                        .map(|pp| pp.ptr_eq(&Weak::new()))
-                        .unwrap_or(true)
-                });
+            let next = candidates.into_iter().find(|&p| {
+                self.get(p)
+                    .map(|pp| pp.ptr_eq(&Weak::new()))
+                    .unwrap_or(true)
+            });
             let candidate = next;
             match candidate {
                 Some(p) if matches!(self.get(p), None) => return None,

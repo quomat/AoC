@@ -22,10 +22,10 @@ impl Move {
         s.and_then(|sp| {
             f.and_then(|fp| {
                 t.map(|tp| Move {
-                        size: sp,
-                        from: fp - 1,
-                        to: tp - 1,
-                    })
+                    size: sp,
+                    from: fp - 1,
+                    to: tp - 1,
+                })
             })
         })
     }

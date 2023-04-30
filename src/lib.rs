@@ -3,6 +3,7 @@ pub mod day0;
 pub mod year2022;
 
 pub mod structures;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
@@ -14,7 +15,7 @@ mod tests {
         ($n:tt, $p:tt, $answer:expr) => {
             paste::item! {
                 #[test]
-                fn [<test_day $n _ $p>]()
+                fn [<day $n _ $p>]()
                 {
                     let result = [<Day $n>]::[<solve_input $p>](TESTS_FILE_NAME);
 
@@ -45,7 +46,7 @@ mod tests {
     day!(9, 2, 1);
 
     #[test]
-    fn test_day9_3() {
+    fn day9_3() {
         let result = Day9::solve_input2(TESTS_ADDITIONAL_FILE_NAME);
         assert_eq!(result, 36);
     }
@@ -53,7 +54,7 @@ mod tests {
     day!(10, 1, day10::ComputerOutput::SignalSum(13140));
 
     #[test]
-    fn test_day10_2() {
+    fn day10_2() {
         let result = Day10::solve_input2(TESTS_FILE_NAME);
 
         let crt = "##..##..##..##..##..##..##..##..##..##..
@@ -81,28 +82,35 @@ mod tests {
     day!(14, 1, 24);
     day!(14, 2, 93);
     #[test]
-    fn test_day15_1() {
+    fn day15_1() {
         let result = Day15::<10>::solve_input1(TESTS_FILE_NAME);
         assert_eq!(result, 26);
     }
     #[test]
-    fn test_day15_2() {
+    fn day15_2() {
         let result = Day15::<10>::solve_input2(TESTS_FILE_NAME);
         assert_eq!(result, 56000011);
     }
 
     #[test]
-    fn test_day16_1() {
+    fn day16_1() {
         let result = Day16::<30>::solve_input1(TESTS_FILE_NAME);
         assert_eq!(result, 1651)
     }
 
     #[test]
-    fn test_day16_2() {
+    fn day16_2() {
         let result = Day16::<26>::solve_input2(TESTS_FILE_NAME);
         assert_eq!(result, 1707)
     }
 
     day!(17, 1, 3068);
     day!(17, 2, 1514285714288);
+
+    #[test]
+    fn day18_1_easy()
+    {
+        assert_eq!(Day18::solve(Day18::parse("0,0,0\n0,0,1")),10);
+    }
+    day!(18,1,64);
 }

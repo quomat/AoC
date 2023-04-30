@@ -8,11 +8,11 @@ use crate::day0::Day;
 pub struct Day16<const M: u16>;
 
 type CurrentSolveState = Vec<(
-            (ValveIndex, u16),
-            u64,
-            HashSet<ValveIndex>,
-            (ValveIndex, u16),
-        )>;
+    (ValveIndex, u16),
+    u64,
+    HashSet<ValveIndex>,
+    (ValveIndex, u16),
+)>;
 
 impl<const M: u16> Day<2022, 16, Vec<Valve>, u64> for Day16<M> {
     fn solve(input: Vec<Valve>) -> u64 {

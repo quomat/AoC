@@ -44,7 +44,8 @@ impl Day<2022, 3, Vec<(HashSet<u8>, HashSet<u8>)>, u32> for Day3 {
                 .collect::<HashSet<&&u8>>();
             assert_eq!(inters.len(), 1);
             let emblem = rucksack1
-                .iter().find(|a1| rucksack2.contains(*a1) && rucksack3.contains(*a1))
+                .iter()
+                .find(|a1| rucksack2.contains(*a1) && rucksack3.contains(*a1))
                 .unwrap();
 
             sum += priority(**emblem);
