@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-use crate::{day0::Day, utils::tuple_map::TupleMap, year2022::day18::cube_arena::parser::point};
+use crate::{day0::Day, utils::{tuple_map::TupleMap, bfs::*}, year2022::day18::cube_arena::parser::point};
 
 use self::cube_arena::*;
 
@@ -14,7 +14,19 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
     }
 
     fn solve2(input: CubeSpace) -> u32 {
-        todo!()
+        let mut answer = input.sum();
+
+        let mut visited = HashSet::new();
+        
+        for point in input.get_all_possible_points()
+        {
+            if visited.contains(&point) {continue;}
+
+            if let Some(inner) = input.run_bfs(point, |n,r:u32| r + ((CUBE_SIDES - input.get(n).unwrap()) as u32), &mut visited){
+                answer -= inner;
+            }
+        }
+        answer
     }
 
     fn parse(input: &str) -> CubeSpace {
@@ -27,25 +39,43 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
         let mut cubes = CubeSpace::new(max_x + 1, max_y + 1, max_z + 1);
         for p in &points {
             for q in p.neighbours() {
-                    if cubes.get(q).is_ok() {
-                        cubes.sub1(q);
-                    }
+                if cubes.get(q).is_ok() {
+                    cubes.sub1(q);
                 }
-
+            }
         }
         cubes.set_points(points);
         cubes
     }
 }
 
+impl BreadthTraversable for CubeSpace
+{
+    type Item = Point;
 
+    fn get_neighbours(&self, item: &Self::Item) -> Vec<Self::Item> {
+        item.neighbours()
+    }
+
+    fn field_type(&self, item: &Self::Item) -> FieldType {
+        if self.get_points().contains(item) {
+            FieldType::Stop
+        }
+        else if self.get_neighbours(item).len() < 6{
+            FieldType::Exit
+        }
+        else {
+            FieldType::Blank
+        }
+        
+    }
+}
 mod cube_arena {
     use std::collections::HashSet;
 
     /// Field of coordinates
     pub type K = usize;
-    #[derive(Clone, Copy, Debug, PartialEq,Eq)]
-    #[derive(Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Point {
         pub x: K,
         pub y: K,
@@ -116,14 +146,13 @@ mod cube_arena {
         width: K,
     }
 
-
-    const CUBE_SIDES : u8 = 6;
+    pub const CUBE_SIDES: u8 = 6;
 
     impl CubeSpace {
         pub fn new(width: K, height: K, depth: K) -> CubeSpace {
             CubeSpace {
                 cubes: vec![CUBE_SIDES; width * height * depth],
-                points : HashSet::new(),
+                points: HashSet::new(),
                 width,
                 height,
                 depth,
@@ -176,20 +205,34 @@ mod cube_arena {
         }
 
         pub fn sum(&self) -> u32 {
-            self.points.iter().map(|&p| self.get(p).unwrap() as u32).sum()
+            self.points
+                .iter()
+                .map(|&p| self.get(p).unwrap() as u32)
+                .sum()
         }
 
-        pub fn add_point(&mut self, p: Point)  {
+        pub fn add_point(&mut self, p: Point) {
             self.points.insert(p);
         }
 
-        pub fn set_points(&mut self, pts : HashSet<Point>)
-        {
+        pub fn set_points(&mut self, pts: HashSet<Point>) {
             self.points = pts;
         }
 
         pub(crate) fn get_points(&self) -> &HashSet<Point> {
             &self.points
+        }
+
+        pub(crate) fn get_all_possible_points(&self) -> Vec<Point> {
+            let mut points = Vec::new();
+            for x in 0..self.width {
+                for y in 0..self.height {
+                    for z in 0..self.depth {
+                        points.push(Point{x,y,z});
+                    }
+                }
+            }
+            points
         }
     }
 
@@ -229,7 +272,10 @@ mod cube_arena {
                     }
                 }
             }
-            assert_eq!(cubes.sum() as usize,height*width*length*(CUBE_SIDES as usize));
+            assert_eq!(
+                cubes.sum() as usize,
+                height * width * length * (CUBE_SIDES as usize)
+            );
         }
     }
 }

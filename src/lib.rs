@@ -108,9 +108,9 @@ mod tests {
     day!(17, 2, 1514285714288);
 
     #[test]
-    fn day18_1_easy()
-    {
-        assert_eq!(Day18::solve(Day18::parse("0,0,0\n0,0,1")),10);
+    fn day18_1_easy() {
+        assert_eq!(Day18::solve(Day18::parse("0,0,0\n0,0,1")), 10);
     }
-    day!(18,1,64);
+    day!(18, 1, 64);
+    day!(18,2,58);
 }
