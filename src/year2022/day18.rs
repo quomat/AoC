@@ -17,12 +17,19 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
         let mut answer = input.sum();
 
         let mut visited = HashSet::new();
-        
-        for point in input.get_all_possible_points()
-        {
-            if visited.contains(&point) {continue;}
 
-            if let Some(inner) = input.run_bfs(point, |n,r:u32| r + ((CUBE_SIDES - input.get(n).unwrap()) as u32), &mut visited){
+        let test_point = Point {x:4,y:8,z:8};
+        for point in [test_point]//input.get_all_possible_points()
+        {
+            if visited.contains(&point) || input.field_type(&point) != FieldType::Blank {continue;}
+
+            if let Some(inner) = input.run_bfs(point, |n,r:u32|
+                {
+                    let res = r + (CUBE_SIDES - input.get(n).unwrap()) as u32;
+                    println!("Value at {0:?} is {1:?}, and the current overall is {2:?}",n,input.get(n).unwrap(),res);
+                    res 
+                }, &mut visited){
+                println!("Hole found with success! {0:?} inner sides substracted from total {1:?} giving  new total {2:?}",inner,answer,answer - inner);
                 answer -= inner;
             }
         }
@@ -38,7 +45,7 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
             .tmap(|v: Vec<K>| v.into_iter().max().unwrap());
         let mut cubes = CubeSpace::new(max_x + 1, max_y + 1, max_z + 1);
         for p in &points {
-            for q in p.neighbours() {
+            for q in cubes.neighbours_of(&p) {
                 if cubes.get(q).is_ok() {
                     cubes.sub1(q);
                 }
@@ -54,7 +61,7 @@ impl BreadthTraversable for CubeSpace
     type Item = Point;
 
     fn get_neighbours(&self, item: &Self::Item) -> Vec<Self::Item> {
-        item.neighbours()
+        self.neighbours_of(&item)
     }
 
     fn field_type(&self, item: &Self::Item) -> FieldType {
@@ -83,41 +90,6 @@ mod cube_arena {
     }
 
     impl Point {
-        pub fn neighbours(&self) -> Vec<Point> {
-            let mut v = vec![
-                Point {
-                    x: self.x + 1,
-                    ..*self
-                },
-                Point {
-                    y: self.y + 1,
-                    ..*self
-                },
-                Point {
-                    z: self.z + 1,
-                    ..*self
-                },
-            ];
-            if self.x > 0 {
-                v.push(Point {
-                    x: self.x - 1,
-                    ..*self
-                })
-            }
-            if self.y > 0 {
-                v.push(Point {
-                    y: self.y - 1,
-                    ..*self
-                })
-            }
-            if self.z > 0 {
-                v.push(Point {
-                    z: self.z - 1,
-                    ..*self
-                })
-            }
-            v
-        }
     }
 
     pub mod parser {
@@ -221,6 +193,48 @@ mod cube_arena {
 
         pub(crate) fn get_points(&self) -> &HashSet<Point> {
             &self.points
+        }
+
+        pub fn neighbours_of(&self, p : &Point) -> Vec<Point> {
+            let mut v = vec![];
+            if p.x < self.width - 1 {
+                v.push(Point {
+                    x: p.x + 1,
+                    ..*p
+                });
+            };
+            if p.y < self.height - 1{
+                v.push(Point {
+                    y: p.y + 1,
+                    ..*p
+                });
+            };
+            if p.z < self.depth - 1 {
+                v.push(Point {
+                    z: p.z + 1,
+                    ..*p
+                });
+            };
+            
+            if p.x > 0 {
+                v.push(Point {
+                    x: p.x - 1,
+                    ..*p
+                })
+            }
+            if p.y > 0 {
+                v.push(Point {
+                    y: p.y - 1,
+                    ..*p
+                })
+            }
+            if p.z > 0 {
+                v.push(Point {
+                    z: p.z - 1,
+                    ..*p
+                })
+            }
+            v
         }
 
         pub(crate) fn get_all_possible_points(&self) -> Vec<Point> {
