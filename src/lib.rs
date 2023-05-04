@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn day18_1_easy() {
-        assert_eq!(Day18::solve(Day18::parse("0,0,0\n0,0,1")), 10);
+        assert_eq!(Day18::solve(Day18::parse("1,1,1\n1,1,2,\n1,2,1")), 14);
     }
     day!(18, 1, 64);
     day!(18,2,58);
