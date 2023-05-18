@@ -51,3 +51,6 @@ pub use self::day17::Day17;
 
 pub mod day18;
 pub use self::day18::Day18;
+
+pub mod day19;
+pub use self::day19::Day19;
