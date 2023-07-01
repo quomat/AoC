@@ -113,4 +113,10 @@ mod tests {
     }
     day!(18, 1, 64);
     day!(18,2,58);
+
+    #[test]
+    fn day19_1()
+    {
+        assert_eq!(Day19::<24>::solve_input1(TESTS_FILE_NAME), 9);
+    }
 }
