@@ -7,13 +7,26 @@ pub struct Day19<const MIN : u32>;
 impl<const MIN : u32> Day<2022,19,Vec<Blueprint>,Currency> for Day19<MIN>
 {
     fn solve(input: Vec<Blueprint>) -> Currency {
-        let state = enum_map! { Material::Ore | _ => StateElement::new()} ;
 
-        state[Material::Ore].machines = 1;
+        todo!()
     }
 
     fn parse(input: &str) -> Vec<Blueprint> {
-        input.lines().map(|l| Blueprint::parse(l)).collect()
+        input.lines().map(Blueprint::parse).collect()
+    }
+}
+
+impl<const MIN :  u32> Day19<MIN>
+{
+    fn solve_blueprint(b : Blueprint) -> Currency
+    {
+        let mut initial_state = enum_map! { Material::Ore | _ => StateElement::new()} ;
+
+        initial_state[Material::Ore].machines = 1;
+        
+        let mut queue = vec![initial_state];
+
+        todo!()
     }
 }
 
