@@ -89,7 +89,7 @@ impl Display for ComputerOutput {
 
 pub struct Day10;
 
-impl Day<2022, 10, Vec<Instruction>, ComputerOutput> for Day10 {
+impl Day<10, Vec<Instruction>, ComputerOutput> for Day10 {
     fn solve(input: Vec<Instruction>) -> ComputerOutput {
         ComputerOutput::SignalSum(play(input).counter)
     }

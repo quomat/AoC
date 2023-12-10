@@ -7,7 +7,7 @@ use crate::day0::*;
 use self::intervals::IntervalArray;
 pub struct Day15<const P: i64>;
 
-impl<const P: i64> Day<2022, 15, Vec<Sensor>, u64> for Day15<P> {
+impl<const P: i64> Day<15, Vec<Sensor>, u64> for Day15<P> {
     fn solve(input: Vec<Sensor>) -> u64 {
         Self::sensor_excluded(&input, P, &mut IntervalArray::new())
     }

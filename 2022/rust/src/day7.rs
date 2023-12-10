@@ -45,7 +45,7 @@ pub struct Entry {
 
 pub struct Day7 {}
 
-impl Day<2022, 7, Node<Entry>, u64> for Day7 {
+impl Day<7, Node<Entry>, u64> for Day7 {
     fn solve(input: Node<Entry>) -> u64 {
         const SIZE: u64 = 100000;
         let f = input.flatten_branches();

@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 
 pub struct Day4;
 
-impl Day<2022, 4, Vec<(RangeInclusive<u8>, RangeInclusive<u8>)>, u32> for Day4 {
+impl Day<4, Vec<(RangeInclusive<u8>, RangeInclusive<u8>)>, u32> for Day4 {
     fn parse(input: &str) -> Vec<(RangeInclusive<u8>, RangeInclusive<u8>)> {
         input
             .lines()

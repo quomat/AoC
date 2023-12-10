@@ -2,7 +2,7 @@ use crate::day0::Day;
 
 pub struct Day8 {}
 
-impl Day<2022, 8, Vec<Vec<u32>>, usize> for Day8 {
+impl Day<8, Vec<Vec<u32>>, usize> for Day8 {
     fn solve(input: Vec<Vec<u32>>) -> usize {
         let n = input.len();
         let mut visible: Vec<Vec<bool>> = vec![vec![false; n]; n];

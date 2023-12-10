@@ -43,7 +43,7 @@ impl FromStr for Move {
     }
 }
 
-impl Day<2022, 5, Input, String> for Day5 {
+impl Day<5, Input, String> for Day5 {
     fn solve(mut input: Input) -> String {
         for m in input.moves {
             for _ in 0..m.size {

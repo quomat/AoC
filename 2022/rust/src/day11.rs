@@ -4,7 +4,7 @@ use self::monkeys::*;
 
 pub struct Day11;
 
-impl Day<2022, 11, Vec<Monkey<bool>>, u64> for Day11 {
+impl Day<11, Vec<Monkey<bool>>, u64> for Day11 {
     fn solve(input: Vec<Monkey<bool>>) -> u64 {
         let n = 20;
 

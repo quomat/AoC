@@ -26,7 +26,7 @@ impl AsciiMultiSet {
     }
 }
 
-impl Day<2022, 6, Vec<char>, usize> for Day6 {
+impl Day<6, Vec<char>, usize> for Day6 {
     fn solve(input: Vec<char>) -> usize {
         solve_for(input, 4)
     }

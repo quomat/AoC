@@ -14,7 +14,7 @@ type CurrentSolveState = Vec<(
     (ValveIndex, u16),
 )>;
 
-impl<const M: u16> Day<2022, 16, Vec<Valve>, u64> for Day16<M> {
+impl<const M: u16> Day<16, Vec<Valve>, u64> for Day16<M> {
     fn solve(input: Vec<Valve>) -> u64 {
         let va = ValveArena::new(input);
         // dbg!(&va);
@@ -129,7 +129,7 @@ impl ValveArena {
                         .and_modify(|map| {
                             map.insert(f, step);
                         })
-                        .or_insert(HashMap::new());
+                        .or_default();
                     for neighbour in &self.valves.get(&f).unwrap().leads {
                         if let Some(n) = self.paths.get(idx) {
                             if !n.contains_key(neighbour) {

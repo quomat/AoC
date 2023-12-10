@@ -2,7 +2,7 @@ use crate::day0::Day;
 
 pub struct Day1;
 
-impl Day<2022, 1, Vec<Vec<u32>>, u32> for Day1 {
+impl Day<1, Vec<Vec<u32>>, u32> for Day1 {
     fn parse(input: &str) -> Vec<Vec<u32>> {
         input
             .split("\n\n")

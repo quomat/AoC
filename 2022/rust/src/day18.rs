@@ -2,13 +2,16 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-use crate::{day0::Day, utils::{tuple_map::TupleMap, bfs::*}, year2022::day18::cube_arena::parser::point};
+use crate::{
+    day0::Day,
+    utils::{bfs::*, tuple_map::TupleMap},
+};
 
 use self::cube_arena::*;
 
 pub struct Day18;
 
-impl Day<2022, 18, CubeSpace, u32> for Day18 {
+impl Day<18, CubeSpace, u32> for Day18 {
     fn solve(input: CubeSpace) -> u32 {
         input.sum()
     }
@@ -18,25 +21,28 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
 
         let mut visited = HashSet::new();
 
-        let test_point = Point {x:0,y:0,z:0};
+        let test_point = Point { x: 0, y: 0, z: 0 };
         dbg!(input.get_all_possible_points().len());
         dbg!(input.get_points().len());
-        for point in [test_point]//input.get_all_possible_points()
+        for point in [test_point]
+        //input.get_all_possible_points()
         {
             // if visited.contains(&point) || input.field_type(&point) != FieldType::Blank {continue;}
-            if let Some(inner) = input.run_bfs(point, |n,r:u32|
-                {
+            if let Some(inner) = input.run_bfs(
+                point,
+                |n, r: u32| {
                     let res = r + input.get(n).unwrap() as u32;
                     if input.get(n).unwrap() != 0 {
-                    // println!("Value at {0:?} is {1:?}, and the current overall is {2:?}",n,input.get(n).unwrap(),res);
-                        }
-                    if input.get_points().contains(&n)
-                        {
-                        println!("HAHAHA {:?}",n);
+                        // println!("Value at {0:?} is {1:?}, and the current overall is {2:?}",n,input.get(n).unwrap(),res);
                     }
-                    
-                    res 
-                }, &mut visited){
+                    if input.get_points().contains(&n) {
+                        println!("HAHAHA {:?}", n);
+                    }
+
+                    res
+                },
+                &mut visited,
+            ) {
                 println!("Hole found with success! {0:?} outer sides added to old total {1:?} giving new total {2:?}",inner,answer,answer + inner);
                 answer += inner;
             }
@@ -45,7 +51,7 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
     }
 
     fn parse(input: &str) -> CubeSpace {
-        let points = input.lines().map(point).collect::<HashSet<Point>>();
+        let points = input.lines().map(parser::point).collect::<HashSet<Point>>();
         let (max_x, max_y, max_z) = points
             .iter()
             .map(|&Point { x, y, z }| (x, y, z))
@@ -56,7 +62,7 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
         for p in &points {
             for q in cubes.neighbours_of(p) {
                 // if cubes.get(q).is_ok() {
-                    cubes.add1(q);
+                cubes.add1(q);
                 total += 1;
                 // }
             }
@@ -67,8 +73,7 @@ impl Day<2022, 18, CubeSpace, u32> for Day18 {
     }
 }
 
-impl BreadthTraversable for CubeSpace
-{
+impl BreadthTraversable for CubeSpace {
     type Item = Point;
 
     fn get_neighbours(&self, item: &Self::Item) -> Vec<Self::Item> {
@@ -78,11 +83,9 @@ impl BreadthTraversable for CubeSpace
     fn field_type(&self, item: &Self::Item) -> FieldType {
         if self.get_points().contains(item) {
             FieldType::Stop
-        }
-        else {
+        } else {
             FieldType::Blank
         }
-        
     }
 }
 mod cube_arena {
@@ -97,8 +100,7 @@ mod cube_arena {
         pub z: K,
     }
 
-    impl Point {
-    }
+    impl Point {}
 
     pub mod parser {
         use itertools::Itertools;
@@ -114,7 +116,11 @@ mod cube_arena {
                 .next()
                 .unwrap();
 
-            Point { x:x+1, y:y+1, z:z+1 } // offset to make surface calculation easier
+            Point {
+                x: x + 1,
+                y: y + 1,
+                z: z + 1,
+            } // offset to make surface calculation easier
         }
     }
 
@@ -173,14 +179,14 @@ mod cube_arena {
         }
 
         pub fn add1(&mut self, p @ Point { x, y, z }: Point) {
-                    if !self.check(p) {
-                        panic!(
+            if !self.check(p) {
+                panic!(
                             "Error. Tried to add1 sadd1 mething at {0:?} while the dimensions are {1},{2},{3}",
                             p, self.width, self.height, self.depth
                         );
-                    }
-                    self.cubes[(z * self.height + y) * self.width + x] += 1;
-                }
+            }
+            self.cubes[(z * self.height + y) * self.width + x] += 1;
+        }
         pub fn sub1(&mut self, p @ Point { x, y, z }: Point) {
             if !self.check(p) {
                 panic!(
@@ -195,7 +201,7 @@ mod cube_arena {
             self.get_all_possible_points()
                 .iter()
                 .filter(|p| !self.points.contains(p))
-            // self.get_points()
+                // self.get_points()
                 // .iter()
                 .map(|&p| self.get(p).unwrap() as u32)
                 .sum()
@@ -213,44 +219,26 @@ mod cube_arena {
             &self.points
         }
 
-        pub fn neighbours_of(&self, p : &Point) -> Vec<Point> {
+        pub fn neighbours_of(&self, p: &Point) -> Vec<Point> {
             let mut v = vec![];
             if p.x < self.width - 1 {
-                v.push(Point {
-                    x: p.x + 1,
-                    ..*p
-                });
+                v.push(Point { x: p.x + 1, ..*p });
             };
-            if p.y < self.height - 1{
-                v.push(Point {
-                    y: p.y + 1,
-                    ..*p
-                });
+            if p.y < self.height - 1 {
+                v.push(Point { y: p.y + 1, ..*p });
             };
             if p.z < self.depth - 1 {
-                v.push(Point {
-                    z: p.z + 1,
-                    ..*p
-                });
+                v.push(Point { z: p.z + 1, ..*p });
             };
-            
+
             if p.x > 0 {
-                v.push(Point {
-                    x: p.x - 1,
-                    ..*p
-                })
+                v.push(Point { x: p.x - 1, ..*p })
             }
             if p.y > 0 {
-                v.push(Point {
-                    y: p.y - 1,
-                    ..*p
-                })
+                v.push(Point { y: p.y - 1, ..*p })
             }
             if p.z > 0 {
-                v.push(Point {
-                    z: p.z - 1,
-                    ..*p
-                })
+                v.push(Point { z: p.z - 1, ..*p })
             }
             v
         }
@@ -260,7 +248,7 @@ mod cube_arena {
             for x in 0..self.width {
                 for y in 0..self.height {
                     for z in 0..self.depth {
-                        points.push(Point{x,y,z});
+                        points.push(Point { x, y, z });
                     }
                 }
             }
@@ -272,7 +260,7 @@ mod cube_arena {
     mod tests {
 
         use super::{CubeSpace, Point};
-const CUBE_SIDES :u8 = 6;
+        const CUBE_SIDES: u8 = 6;
         #[test]
         fn cube_space_init() {
             let width = 5;
@@ -302,7 +290,7 @@ const CUBE_SIDES :u8 = 6;
                     }
                 }
             }
-            cubes.add_point(Point {x:1,y:2,z:3});
+            cubes.add_point(Point { x: 1, y: 2, z: 3 });
             assert_eq!(
                 cubes.sum() as usize,
                 height * width * length * (CUBE_SIDES as usize) - (CUBE_SIDES as usize)

@@ -8,7 +8,7 @@ pub struct HeightMap {
 
 pub struct Day12;
 
-impl Day<2022, 12, HeightMap, u32> for Day12 {
+impl Day<12, HeightMap, u32> for Day12 {
     fn solve(input: HeightMap) -> u32 {
         let n = input.map.len();
         let m = input.map[0].len();

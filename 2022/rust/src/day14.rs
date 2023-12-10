@@ -31,7 +31,7 @@ pub struct RockFormation {
     parts: Vec<Rock>,
 }
 
-impl Day<2022, 14, RockFormation, usize> for Day14 {
+impl Day<14, RockFormation, usize> for Day14 {
     fn solve(input: RockFormation) -> usize {
         let mut world = World::new();
         for rock in input.parts {
@@ -259,7 +259,7 @@ impl World {
             });
             let candidate = next;
             match candidate {
-                Some(p) if matches!(self.get(p), None) => return None,
+                Some(p) if self.get(p).is_none() => return None,
                 Some(p) => pos = p,
                 None => {
                     let sand = Entity::Sand(pos);

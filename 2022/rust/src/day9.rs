@@ -65,7 +65,7 @@ pub struct Position {
 
 pub struct Day9;
 
-impl Day<2022, 9, Vec<Command>, usize> for Day9 {
+impl Day<9, Vec<Command>, usize> for Day9 {
     fn solve(input: Vec<Command>) -> usize {
         let mut head = Position { x: 0, y: 0 };
         let mut tail = Position { x: 0, y: 0 };

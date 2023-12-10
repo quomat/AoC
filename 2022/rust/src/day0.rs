@@ -4,7 +4,7 @@ pub trait Answer {
     fn answer(&self) -> String;
 }
 
-pub trait Day<const Y: u16, const N: u8, I, O>
+pub trait Day<const N: u8, I, O>
 where
     O: Answer,
 {
@@ -27,12 +27,12 @@ where
     }
 
     fn solve_input1(input: &str) -> O {
-        let i = fs::read_to_string(format!("input/year{0}/day{1}/{2}", Y, N, input)).unwrap();
+        let i = fs::read_to_string(format!("input/day{0}/{1}", N, input)).unwrap();
         Self::solve(Self::parse(&i))
     }
 
     fn solve_input2(input: &str) -> O {
-        let i = fs::read_to_string(format!("input/year{0}/day{1}/{2}", Y, N, input)).unwrap();
+        let i = fs::read_to_string(format!("input/day{0}/{1}", N, input)).unwrap();
         Self::solve2(Self::parse2(&i))
     }
 

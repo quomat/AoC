@@ -1,7 +1,7 @@
 use crate::day0::Day;
 pub struct Day2;
 
-impl Day<2022, 2, Vec<(Figure, Figure)>, u32> for Day2 {
+impl Day<2, Vec<(Figure, Figure)>, u32> for Day2 {
     fn solve(input: Vec<(Figure, Figure)>) -> u32 {
         total(input)
     }

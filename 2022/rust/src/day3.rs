@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use crate::day0::Day;
 pub struct Day3;
 
-impl Day<2022, 3, Vec<(HashSet<u8>, HashSet<u8>)>, u32> for Day3 {
+impl Day<3, Vec<(HashSet<u8>, HashSet<u8>)>, u32> for Day3 {
     fn parse(input: &str) -> Vec<(HashSet<u8>, HashSet<u8>)> {
         input
             .lines()

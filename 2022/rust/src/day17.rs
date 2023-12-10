@@ -6,7 +6,7 @@ use std::{
 
 use bitvec::{bitvec, vec::BitVec};
 
-use crate::{day0::Day, year2022::day17::embedding::intersect};
+use crate::day0::Day;
 
 use self::embedding::EmbeddedShape;
 
@@ -199,7 +199,7 @@ where
             let curr = EmbeddedShape::new(pn, shape);
             for emb in &world {
                 // dbg!(emb.p.y);
-                if intersect(*emb, curr) {
+                if embedding::intersect(*emb, curr) {
                     if !jet {
                         //         println!("fatal: block impact");
                         break 'fall;
@@ -322,7 +322,7 @@ fn do_move(jet: bool, j: Move, p: Point) -> Point {
     }
 }
 
-impl Day<2022, 17, Vec<Move>, usize> for Day17 {
+impl Day<17, Vec<Move>, usize> for Day17 {
     fn solve(input: Vec<Move>) -> usize {
         const W: usize = 7;
 

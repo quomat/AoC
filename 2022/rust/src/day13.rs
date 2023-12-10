@@ -11,7 +11,7 @@ use nom::Finish;
 
 pub struct Day13();
 
-impl Day<2022, 13, Vec<(Packet, Packet)>, Vec<usize>> for Day13 {
+impl Day<13, Vec<(Packet, Packet)>, Vec<usize>> for Day13 {
     fn solve(input: Vec<(Packet, Packet)>) -> Vec<usize> {
         input
             .into_iter()
@@ -29,7 +29,7 @@ impl Day<2022, 13, Vec<(Packet, Packet)>, Vec<usize>> for Day13 {
         let mut prepared = input
             .into_iter()
             .flat_map(|(a, b)| vec![a, b])
-            .chain(decoders.into_iter())
+            .chain(decoders)
             .collect::<Vec<Packet>>();
 
         prepared.sort();
@@ -68,8 +68,8 @@ pub enum Packet {
     Complex(Vec<Packet>),
 }
 
-impl PartialOrd for Packet {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         use Packet::*;
         // unsafe {
         //     static mut INDENT: usize = 0;
@@ -82,10 +82,7 @@ impl PartialOrd for Packet {
         //     INDENT += 1;
 
         let res = match (self, other) {
-            (Integer(x), Integer(y)) => match x.cmp(y) {
-                std::cmp::Ordering::Equal => None,
-                other => Some(other),
-            },
+            (Integer(x), Integer(y)) => x.cmp(y) ,
             (Complex(x), Complex(y)) => {
                 match Itertools::zip_longest(x.iter(), y.iter()).try_for_each(|it| match it {
                     Both(p1, p2) => match p1.partial_cmp(p2) {
@@ -95,12 +92,12 @@ impl PartialOrd for Packet {
                     Left(_) => ControlFlow::Break(Ordering::Greater),
                     Right(_) => ControlFlow::Break(Ordering::Less),
                 }) {
-                    ControlFlow::Continue(..) => None,
-                    ControlFlow::Break(x) => Some(x),
+                    ControlFlow::Continue(..) => Ordering::Equal,
+                    ControlFlow::Break(x) => x,
                 }
             }
-            (&Integer(x), complex) => Complex(vec![Integer(x)]).partial_cmp(complex),
-            (complex, &Integer(x)) => complex.partial_cmp(&Complex(vec![Integer(x)])),
+            (&Integer(x), complex) => Complex(vec![Integer(x)]).cmp(complex),
+            (complex, &Integer(x)) => complex.cmp(&Complex(vec![Integer(x)])),
         };
         // INDENT -= 1;
         // println!("{INDENT:indent$}... done! {:?}", res,indent = INDENT);
@@ -109,14 +106,13 @@ impl PartialOrd for Packet {
     }
 }
 
-impl Ord for Packet {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match self.partial_cmp(other) {
-            Some(order) => order,
-            None => Ordering::Equal,
-        }
+impl PartialOrd for Packet
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
+
 
 impl FromStr for Packet {
     type Err = nom::error::Error<String>;
