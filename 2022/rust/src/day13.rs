@@ -67,9 +67,9 @@ pub enum Packet {
     Integer(u32),
     Complex(Vec<Packet>),
 }
-
-impl Ord for Packet {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+#[allow(clippy::non_canonical_partial_ord_impl)]
+impl PartialOrd for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         use Packet::*;
         // unsafe {
         //     static mut INDENT: usize = 0;
@@ -82,7 +82,10 @@ impl Ord for Packet {
         //     INDENT += 1;
 
         let res = match (self, other) {
-            (Integer(x), Integer(y)) => x.cmp(y) ,
+            (Integer(x), Integer(y)) => match x.cmp(y) {
+                std::cmp::Ordering::Equal => None,
+                other => Some(other),
+            },
             (Complex(x), Complex(y)) => {
                 match Itertools::zip_longest(x.iter(), y.iter()).try_for_each(|it| match it {
                     Both(p1, p2) => match p1.partial_cmp(p2) {
@@ -92,12 +95,12 @@ impl Ord for Packet {
                     Left(_) => ControlFlow::Break(Ordering::Greater),
                     Right(_) => ControlFlow::Break(Ordering::Less),
                 }) {
-                    ControlFlow::Continue(..) => Ordering::Equal,
-                    ControlFlow::Break(x) => x,
+                    ControlFlow::Continue(..) => None,
+                    ControlFlow::Break(x) => Some(x),
                 }
             }
-            (&Integer(x), complex) => Complex(vec![Integer(x)]).cmp(complex),
-            (complex, &Integer(x)) => complex.cmp(&Complex(vec![Integer(x)])),
+            (&Integer(x), complex) => Complex(vec![Integer(x)]).partial_cmp(complex),
+            (complex, &Integer(x)) => complex.partial_cmp(&Complex(vec![Integer(x)])),
         };
         // INDENT -= 1;
         // println!("{INDENT:indent$}... done! {:?}", res,indent = INDENT);
@@ -106,13 +109,14 @@ impl Ord for Packet {
     }
 }
 
-impl PartialOrd for Packet
-{
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.partial_cmp(other) {
+            Some(order) => order,
+            None => Ordering::Equal,
+        }
     }
 }
-
 
 impl FromStr for Packet {
     type Err = nom::error::Error<String>;
