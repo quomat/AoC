@@ -135,6 +135,6 @@ mod tests {
 
     #[test]
     fn day19_1() {
-        assert_eq!(day19::Day19::<24>::solve_input1(TESTS_FILE_NAME), 9);
+        assert_eq!(day19::Day19::<24>::solve_input1(TESTS_FILE_NAME), 33);
     }
 }
