@@ -1,3 +1,5 @@
+use std::{cmp::Ordering, collections::HashSet};
+
 use enum_map::{enum_map, EnumMap};
 
 use strum::IntoEnumIterator;
@@ -11,6 +13,10 @@ impl<const MIN: u32> Day<19, Vec<Blueprint>, Currency> for Day19<MIN> {
         input.into_iter().map( |b| b.id * Day19::<MIN>::solve_blueprint(b)).sum()
     }
 
+    fn solve2(input: Vec<Blueprint>) -> Currency {
+        input.into_iter().take(3).map( |b| Day19::<MIN>::solve_blueprint(b)).product()
+    }
+
     fn parse(input: &str) -> Vec<Blueprint> {
         input.lines().map(Blueprint::parse).collect()
     }
@@ -19,91 +25,97 @@ impl<const MIN: u32> Day<19, Vec<Blueprint>, Currency> for Day19<MIN> {
 impl<const MIN: u32> Day19<MIN> {
     fn solve_blueprint(b: Blueprint) -> Currency {
    
-        let mut queue = vec![Factory::initial()];
-
-        for _minute in 1..=MIN {
-            println!("== Minute {_minute} ==");
+        let mut queue = HashSet::new();
+        queue.insert(Factory::initial());
+        for minute in 1..=MIN-1 {
+            let mut new_queue = HashSet::new();
+            let mut max_geodes = 0;
+            println!("== Minute {minute} ==");
             println!("== Size of queue: {} ==", queue.len());
-            let mut new_queue = vec![];
             for state in queue {
-                for new_factory in Strategy::get_stupid_moves(&b, state){
-                    dbg!(new_factory.clone());
-                    if new_queue.iter().all(|factory| !(factory > &new_factory)){
-                        new_queue.push(new_factory)
-                    }
+                for mov in Self::get_moves(&b, &state){
+                    
+                    let mut new_factory = state.clone();
+                    new_factory.work();
+                    mov.inspect(|&m| new_factory.buy(m, b.prices[m]));
+                    let (new_max, new_potential_max) = Self::max_geodes(minute, &new_factory); 
+                    if  new_potential_max > max_geodes {
+                        new_queue.insert(new_factory);
+                        max_geodes = std::cmp::max(new_max,max_geodes); 
+                    }                    
                 }
             }
             queue = new_queue;
         }
         
-        queue.into_iter().map(|factory| factory.states[Material::Geode].stock).max().unwrap()
+        queue.into_iter().map(|mut factory| { factory.work(); factory.states[Material::Geode].stock}).max().unwrap()
     }
-}
 
-struct Strategy;
 
-impl Strategy
-{
-
-    fn get_moves(b : &Blueprint, factory : &Factory) -> Vec<Factory> {
-        let mut moves = vec![factory.clone()];
+    
+    fn get_moves(b : &Blueprint, factory : &Factory) -> Vec<Option<Material>> {
+        let mut moves = vec![None];
 
         for (material, price) in b.prices {
-            if factory.can_buy(material, price) {
-                let mut new_factory = factory.clone();
-                new_factory.buy(material, price);
-                moves.push(new_factory);
+            if factory.can_buy(material, price) && Bruteforce::strategize(b, factory, material, price) {
+                moves.push(Some(material))
+                
             } 
         }
-
-        for factory in moves.iter_mut(){
-            factory.work();
-        }
-        
+    
         moves
     }
 
-    fn get_stupid_moves(b : &Blueprint, mut factory : Factory) -> Vec<Factory> {
 
-        let mut buy = false;
-        for (material, &price) in b.prices.iter().rev() {
-            if factory.can_buy(material, price) && factory.states[material].machines <= 4 {
-                factory.work();
-                factory.buy(material, price);
-                buy = true;
-                break;
-            } 
-        }
-        if !buy
-        {
-            factory.work();
-        }
+    fn max_geodes(m : u32, factory : &Factory) -> (u32,u32)
+    {
+        let days_left = MIN - m;
+        let geodes = factory.states[Material::Geode].machines * days_left + factory.states[Material::Geode].stock;
 
+        let possible_geodes = days_left * (days_left + 1) / 2;
+
+        (geodes,geodes + possible_geodes)
+    }
+
+    fn is_optimal(new_queue: &mut Vec<Factory>, new_factory: &Factory) -> bool {
         
-
-        vec![factory]
-    }        
-
-    
-    fn get_stupid_moves2(b : &Blueprint, mut factory : Factory) -> Vec<Factory> {
-
-        for (material, &price) in b.prices.iter().rev() {
-            if factory.can_buy(material, price) && factory.states[material].machines <= 4 {
-                factory.buy(material, price);
-                break;
-            } 
+        let mut flag : bool = true;
+        let mut i = 0;
+        while i < new_queue.len()
+        {
+            match new_queue[i].partial_cmp(new_factory)
+            {
+                Some(Ordering::Greater) => {
+                    flag = false;
+                    break;
+                }
+                Some(Ordering::Less) => {
+                    new_queue.swap_remove(i);
+                }
+                Some(Ordering::Equal) | None => i += 1,
+            }
         }
+        flag 
+    }
+}
 
-        factory.work();
+struct Bruteforce;
 
-        vec![factory]
-    }        
+trait Strategy
+{
+    fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool;
+}
+
+impl Strategy for Bruteforce{
+    fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool {
+        true
+    }
 }
 
 // trait Strategy {
 //     fn do_moves(states : Vec<EnumMap<Material, MaterialState>>) -> Vec<EnumMap<Material, MaterialState>>;
 // }
-#[derive(Debug,Clone, PartialEq)]
+#[derive(Debug,Clone, PartialEq, Eq, Hash)]
 struct Factory 
 {
   states : EnumMap<Material, MaterialState>
@@ -141,7 +153,7 @@ impl Factory
 
 impl PartialOrd for Factory
 {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // dbg!(self);
         // dbg!(other);
        let result = Material::iter().map(|m| self.states[m].partial_cmp(&other.states[m])).reduce(|acc, next| if acc == next { acc } else {Option::None}) .flatten();
@@ -150,7 +162,7 @@ impl PartialOrd for Factory
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct MaterialState {
     stock: Currency,
     machines: Currency,
@@ -176,15 +188,15 @@ impl MaterialState {
 
 impl PartialOrd for MaterialState
 {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.stock == other.stock && self.machines == other.machines {
-            return Some(std::cmp::Ordering::Equal)
+            return Some(Ordering::Equal)
         }
         match (self.stock >= other.stock, self.machines >= other.machines) {
-            (true, true) => Some(std::cmp::Ordering::Greater),
+            (true, true) => Some(Ordering::Greater),
             (false, true) => None,
             (true, false) => None,
-            (false, false) => Some(std::cmp::Ordering::Less),
+            (false, false) => Some(Ordering::Less),
         }
     }
 }
