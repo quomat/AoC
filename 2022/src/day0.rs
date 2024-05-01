@@ -4,6 +4,13 @@ pub trait Answer {
     fn answer(&self) -> String;
 }
 
+#[derive(Clone,Copy)]
+pub enum Part
+{
+    Part1,
+    Part2
+}
+
 pub trait Day<const N: u8, I, O>
 where
     O: Answer,
@@ -26,22 +33,31 @@ where
         println!("{:}", output.answer());
     }
 
-    fn solve_input1(input: &str) -> O {
-        let i = fs::read_to_string(format!("input/day{0}/{1}", N, input)).unwrap();
-        Self::solve(Self::parse(&i))
+    fn solve_input(input: &str, part : Part) -> O
+    {
+        let parsing_fn : Box<dyn Fn(&str) -> I>;
+        let solving_fn : Box<dyn Fn(I) -> O>;
+        match part {
+            Part::Part1 => {parsing_fn =Box::new( Self::parse); solving_fn = Box::new(Self::solve)},
+            Part::Part2 => {parsing_fn =Box::new( Self::parse2); solving_fn = Box::new(Self::solve2)},
+        }
+        let path = format!("input/day{0}/{1}", N, input);
+        let res = fs::read_to_string(&path);
+        match res {
+            Ok(inp) =>  solving_fn(parsing_fn(&inp)),
+            Err(_) => panic!("  Error: UPSIIII, nie znaleziono pliku {}. Czy jesteś w folderze 2022?",path),
+        }
     }
 
-    fn solve_input2(input: &str) -> O {
-        let i = fs::read_to_string(format!("input/day{0}/{1}", N, input)).unwrap();
-        Self::solve2(Self::parse2(&i))
-    }
+    fn answer_input(input: &str, part : Part) {
+        let answer  = Self::solve_input(input, part);
+        let answering_fn : Box<dyn Fn(O)>;
 
-    fn answer_input1(input: &str) {
-        Self::answer(Self::solve_input1(input));
-    }
-
-    fn answer_input2(input: &str) {
-        Self::answer2(Self::solve_input2(input));
+        match part {
+        Part::Part1 => answering_fn = Box::new(Self::answer),
+        Part::Part2 => answering_fn = Box::new(Self::answer2),
+        }
+        answering_fn(answer)
     }
 }
 

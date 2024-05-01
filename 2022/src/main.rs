@@ -1,5 +1,5 @@
-use aoc::{day19::Day19, day0::Day};
+use aoc::{day0::*, day19::Day19, *};
 const INPUT_FILE_NAME: &str = "input";
 fn main() {
-    Day19::<32>::answer_input2(INPUT_FILE_NAME)
+    Day19::<32>::answer_input(INPUT_FILE_NAME, Part::Part2)
 }
