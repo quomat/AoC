@@ -32,19 +32,24 @@ impl<const MIN: u32> Day19<MIN> {
             let mut max_geodes = 0;
             println!("== Minute {minute} ==");
             println!("== Size of queue: {} ==", queue.len());
-            for state in queue {
-                for mov in Self::get_moves(&b, &state){
+            for mut state in queue {
+                let moves = Self::get_moves(&b, &state);
+                state.work();
+                for mov in moves{
                     
                     let mut new_factory = state.clone();
-                    new_factory.work();
                     mov.inspect(|&m| new_factory.buy(m, b.prices[m]));
-                    let (new_max, new_potential_max) = Self::max_geodes(minute, &new_factory); 
+                    let (new_max, new_potential_max) = Self::max_geodes(minute, &new_factory, &b); 
                     if  new_potential_max > max_geodes {
+                        if new_max > max_geodes {
+                            new_queue.clear();
+                            max_geodes = new_max;
+                        }
                         new_queue.insert(new_factory);
-                        max_geodes = std::cmp::max(new_max,max_geodes); 
                     }                    
                 }
             }
+            println!("  = max_geodes = {}",max_geodes);
             queue = new_queue;
         }
         
@@ -57,7 +62,7 @@ impl<const MIN: u32> Day19<MIN> {
         let mut moves = vec![None];
 
         for (material, price) in b.prices {
-            if factory.can_buy(material, price) && Bruteforce::strategize(b, factory, material, price) {
+            if factory.can_buy(material, price) && BarbarianForce::strategize(b, factory, material, price) {
                 moves.push(Some(material))
                 
             } 
@@ -67,14 +72,21 @@ impl<const MIN: u32> Day19<MIN> {
     }
 
 
-    fn max_geodes(m : u32, factory : &Factory) -> (u32,u32)
+    fn max_geodes(m : u32, factory : &Factory, blueprint : &Blueprint) -> (u32,u32)
     {
         let days_left = MIN - m;
-        let geodes = factory.states[Material::Geode].machines * days_left + factory.states[Material::Geode].stock;
+        let maximum_output = days_left * (days_left + 1) / 2;
+        let geodes = factory.get_guaranteed(Material::Geode, days_left);
 
-        let possible_geodes = days_left * (days_left + 1) / 2;
+        let ores = factory.get_guaranteed(Material::Ore, days_left);
+        let clays = factory.get_guaranteed(Material::Clay, days_left);
+        let obsidians = factory.get_guaranteed(Material::Obsidian, days_left);
+        
+        let geode_price = blueprint.prices[Material::Geode];
+        let geode_factories = core::cmp::min(ores / geode_price.ore_price, obsidians / geode_price.previous_price.unwrap());
+        let geode_factories = core::cmp::min(geode_factories, days_left);
 
-        (geodes,geodes + possible_geodes)
+        (geodes,geodes + maximum_output)
     }
 
     fn is_optimal(new_queue: &mut Vec<Factory>, new_factory: &Factory) -> bool {
@@ -109,6 +121,26 @@ trait Strategy
 impl Strategy for Bruteforce{
     fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool {
         true
+    }
+}
+
+struct BarbarianForce;
+
+impl Strategy for BarbarianForce{
+    
+    fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool {
+        let ore_max = [b.prices[Material::Ore].ore_price, b.prices[Material::Clay].ore_price, b.prices[Material::Obsidian].ore_price, b.prices[Material::Geode].ore_price].into_iter().max().unwrap();
+        let clay_max = b.prices[Material::Obsidian].previous_price.unwrap();
+        let obsidian_max = b.prices[Material::Geode].previous_price.unwrap();
+        let material_max = enum_map!{
+            Material::Ore => ore_max,
+            Material::Clay => clay_max,
+            Material::Obsidian => obsidian_max,
+            Material::Geode => Currency::max_value(),
+           
+        };
+        
+        factory.states[material].machines < material_max[material]
     }
 }
 
@@ -149,6 +181,13 @@ impl Factory
         }    
     }
 
+    fn get_guaranteed(&self, material : Material, days : u32) -> Currency
+    {
+        let state = self.states[material];
+
+        state.machines * days + state.stock
+    }
+
 }
 
 impl PartialOrd for Factory
@@ -162,7 +201,7 @@ impl PartialOrd for Factory
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct MaterialState {
     stock: Currency,
     machines: Currency,

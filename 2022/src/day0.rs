@@ -33,29 +33,28 @@ where
         println!("{:}", output.answer());
     }
 
-    fn solve_input(input: &str, part : Part) -> O
-    {
-        let parsing_fn : Box<dyn Fn(&str) -> I>;
-        let solving_fn : Box<dyn Fn(I) -> O>;
+    fn solve_input(input: &str, part : Part) -> O {
+        let parsing_fn : fn(&str) -> I;
+        let solving_fn : fn(I) -> O;
         match part {
-            Part::Part1 => {parsing_fn =Box::new( Self::parse); solving_fn = Box::new(Self::solve)},
-            Part::Part2 => {parsing_fn =Box::new( Self::parse2); solving_fn = Box::new(Self::solve2)},
+            Part::Part1 => {parsing_fn =Self::parse; solving_fn = Self::solve},
+            Part::Part2 => {parsing_fn = Self::parse2; solving_fn = Self::solve2},
         }
         let path = format!("input/day{0}/{1}", N, input);
         let res = fs::read_to_string(&path);
         match res {
             Ok(inp) =>  solving_fn(parsing_fn(&inp)),
-            Err(_) => panic!("  Error: UPSIIII, nie znaleziono pliku {}. Czy jesteś w folderze 2022?",path),
+            Err(_) => panic!("  Error: ouupsiii, file not found: {:?}.", std::env::current_dir().map(|wd| wd.join(&path).display().to_string()).unwrap_or(path)),
         }
     }
 
     fn answer_input(input: &str, part : Part) {
         let answer  = Self::solve_input(input, part);
-        let answering_fn : Box<dyn Fn(O)>;
+        let answering_fn : fn(O);
 
         match part {
-        Part::Part1 => answering_fn = Box::new(Self::answer),
-        Part::Part2 => answering_fn = Box::new(Self::answer2),
+            Part::Part1 => answering_fn = Self::answer,
+            Part::Part2 => answering_fn = Self::answer2,
         }
         answering_fn(answer)
     }

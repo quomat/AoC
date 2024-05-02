@@ -1,1 +1,4 @@
-.devcontainer/devcontainer.json
+/2022/target
+/2022/input/day*/input
+/2022/.vscode
+/.devcontainer
