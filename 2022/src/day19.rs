@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashSet};
+use std::{cmp::Ordering, collections::HashSet, hash::Hash};
 
 use enum_map::{enum_map, EnumMap};
 
@@ -30,11 +30,14 @@ impl<const MIN: u32> Day19<MIN> {
         for minute in 1..=MIN-1 {
             let mut new_queue = HashSet::new();
             let mut max_geodes = 0;
+            #[cfg(feature = "debug_printing")]
+            {
             println!("== Minute {minute} ==");
             println!("== Size of queue: {} ==", queue.len());
+            }
             for mut state in queue {
                 let moves = Self::get_moves(&b, &state);
-                state.work();
+                state.work(&b,MIN-minute);
                 for mov in moves{
                     
                     let mut new_factory = state.clone();
@@ -44,16 +47,22 @@ impl<const MIN: u32> Day19<MIN> {
                         if new_max > max_geodes {
                             new_queue.clear();
                             max_geodes = new_max;
-                        }
+                        } 
+                        #[cfg(feature = "debug_printing")]
+                            new_factory.write_journal();
                         new_queue.insert(new_factory);
                     }                    
                 }
             }
+            #[cfg(feature = "debug_printing")]
             println!("  = max_geodes = {}",max_geodes);
             queue = new_queue;
         }
         
-        queue.into_iter().map(|mut factory| { factory.work(); factory.states[Material::Geode].stock}).max().unwrap()
+        let winner = queue.into_iter().map(|mut factory| { factory.work(&b,0); factory}).max_by_key(|factory| factory.states[Material::Geode].stock).unwrap();
+       #[cfg(feature = "debug_printing")] 
+        dbg!(&winner);
+        winner.states[Material::Geode].stock
     }
 
 
@@ -136,7 +145,7 @@ impl Strategy for BarbarianForce{
             Material::Ore => ore_max,
             Material::Clay => clay_max,
             Material::Obsidian => obsidian_max,
-            Material::Geode => Currency::max_value(),
+            Material::Geode => Currency::MAX,
            
         };
         
@@ -147,37 +156,80 @@ impl Strategy for BarbarianForce{
 // trait Strategy {
 //     fn do_moves(states : Vec<EnumMap<Material, MaterialState>>) -> Vec<EnumMap<Material, MaterialState>>;
 // }
-#[derive(Debug,Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 struct Factory 
 {
-  states : EnumMap<Material, MaterialState>
+  states : EnumMap<Material, MaterialState>,
+  #[cfg(feature = "debug_printing")]
+  journal : Vec<EnumMap<Material, MaterialState>>
+}
+impl Hash for Factory {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.states.hash(state);
+    }
+}
+
+impl Eq for Factory {}
+
+impl PartialEq for Factory {
+    fn eq(&self, other: &Self) -> bool {
+        self.states == other.states
+    }
 }
 
 impl Factory
 {
     fn initial() -> Factory{
         
-        Factory { states: enum_map! { Material::Ore => MaterialState::new1(),  _ => MaterialState::new()} }
+        Factory { states: enum_map! { Material::Ore => MaterialState::new1(),  _ => MaterialState::new()}, 
+            #[cfg(feature = "debug_printing")]
+            journal: vec![] }
     }
 
     fn can_buy(&self, material : Material, price : Price) -> bool
     {
+        if self.states[material].finished {
+            return false;
+        }
         self.states[Material::Ore].stock >= price.ore_price && (price.previous_price.is_none() || price.previous_price.is_some_and(|p| self.states[material.previous()].stock >= p))
     }
 
     fn buy(& mut self, material : Material, price : Price)
     {
-        self.states[Material::Ore].stock -= price.ore_price;
-        price.previous_price.inspect(|p| self.states[material.previous()].stock -= p);
+        if self.states[material].finished{
+            // dbg!("nie powinno cie tu byc");
+            return;
+        }
+        if !self.states[Material::Ore].finished {
+            self.states[Material::Ore].stock -= price.ore_price;
+        }
+        price.previous_price.inspect(|p| if !self.states[material.previous()].finished {self.states[material.previous()].stock -= p});
         
         self.states[material].machines += 1;
+        
+        // if material == Material::Geode {
+            // println!("Geode machines bought! Total state:");
+            // dbg!(self.states[material]);   
+        // }
     }
 
-    fn work(&mut self)
+    fn work(&mut self, b : &Blueprint, days_left : u32)
     {
         for material in Material::iter()
         {
-            self.states[material].stock += self.states[material].machines
+            let state = self.states[material];
+            if state.finished{
+                continue;
+            }
+            let max_materials = b.get_max(material);
+
+            // if material != Material::Geode && (state.machines >= b.get_max(material) || max_materials.saturating_sub(state.machines).saturating_mul(days_left) <= state.stock) {
+            //     self.states[material].finished = true;
+            //     self.states[material].stock = max_materials;
+            // }
+            // else{
+                self.states[material].stock =  state.machines + state.stock
+            // }
         }    
     }
 
@@ -186,6 +238,10 @@ impl Factory
         let state = self.states[material];
 
         state.machines * days + state.stock
+    }
+    #[cfg(feature = "debug_printing")]
+    fn write_journal(&mut self) {
+        self.journal.push(self.states.clone());
     }
 
 }
@@ -201,17 +257,44 @@ impl PartialOrd for Factory
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 struct MaterialState {
     stock: Currency,
     machines: Currency,
+    finished : bool,
 }
+
+impl Hash for MaterialState {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        if self.finished {
+            state.write_u8(1);
+        }
+        else {
+            state.write_u32(self.stock);
+            state.write_u32(self.machines);
+        }
+    }
+}
+
+impl PartialEq for MaterialState {
+    fn eq(&self, other: &Self) -> bool {
+        if self.finished == other.finished && self.finished == true {
+            true
+        }
+        else {
+            self.stock == other.stock && self.machines == other.machines
+        }
+    }
+}
+
+impl Eq for MaterialState {}
 
 impl MaterialState {
     fn new() -> MaterialState {
         MaterialState {
             stock: 0,
             machines: 0,
+            finished: false,
         }
     }
 
@@ -219,7 +302,8 @@ impl MaterialState {
     {
         MaterialState {
             stock : 0,
-            machines: 1
+            machines: 1,
+            finished : false,
         }
     }
 
@@ -240,7 +324,7 @@ impl PartialOrd for MaterialState
     }
 }
 
-#[derive(strum_macros::EnumIter, enum_map::Enum, Debug, Clone, Copy)]
+#[derive(strum_macros::EnumIter, enum_map::Enum, Debug, Clone, Copy, PartialEq)]
 enum Material {
     Ore,
     Clay,
@@ -305,6 +389,15 @@ impl Blueprint {
             Material::Obsidian => Price::new(obsidian_ore,obsidian_clay),
             Material::Geode => Price::new(geode_ore,geode_obsidian)
             },
+        }
+    }
+    
+    fn get_max(&self, m: Material) -> Currency{
+        match m{            
+            Material::Ore => [self.prices[Material::Ore].ore_price, self.prices[Material::Clay].ore_price, self.prices[Material::Obsidian].ore_price, self.prices[Material::Geode].ore_price].into_iter().max().unwrap(),
+            Material::Clay => self.prices[Material::Obsidian].previous_price.unwrap(),
+            Material::Obsidian => self.prices[Material::Geode].previous_price.unwrap(),
+            Material::Geode => Currency::MAX,
         }
     }
 }

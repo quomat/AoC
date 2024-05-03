@@ -140,6 +140,6 @@ mod tests {
 
     #[test]
     fn day19_2(){
-        assert_eq!(day19::Day19::<32>::solve_input(TESTS_FILE_NAME, Part::Part2),62);
+        assert_eq!(day19::Day19::<32>::solve_input(TESTS_FILE_NAME, Part::Part2),56*62);
     }
 }

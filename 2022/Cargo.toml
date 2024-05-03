@@ -1,6 +1,9 @@
 [profile.release]
 debug = true
 
+[features]
+debug_printing = []
+
 [package]
 name = "aoc-solver"
 version = "0.1.0"
