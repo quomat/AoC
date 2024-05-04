@@ -53,7 +53,7 @@ impl<const MIN: u32> Day19<MIN> {
                 }
             }
             #[cfg(feature = "debug_printing")]
-            println!("  = max_geodes = {}",max_geodes);
+            println!("  = max_geodes = {}",potential_geodes);
             queue = new_queue;
         }
         
