@@ -29,7 +29,7 @@ impl<const MIN: u32> Day19<MIN> {
         queue.insert(Factory::initial());
         for minute in 1..=MIN-1 {
             let mut new_queue = HashSet::new();
-            let mut max_geodes = 0;
+            let mut potential_geodes = 0;
             #[cfg(feature = "debug_printing")]
             {
             println!("== Minute {minute} ==");
@@ -43,15 +43,13 @@ impl<const MIN: u32> Day19<MIN> {
                     let mut new_factory = state.clone();
                     mov.inspect(|&m| new_factory.buy(m, b.prices[m]));
                     let (new_max, new_potential_max) = Self::max_geodes(minute, &new_factory, &b); 
-                    if  new_potential_max > max_geodes {
-                        if new_max > max_geodes {
+                        if new_max > potential_geodes {
                             new_queue.clear();
-                            max_geodes = new_max;
+                            potential_geodes = new_potential_max;
                         } 
                         #[cfg(feature = "debug_printing")]
                             new_factory.write_journal();
                         new_queue.insert(new_factory);
-                    }                    
                 }
             }
             #[cfg(feature = "debug_printing")]
@@ -60,8 +58,8 @@ impl<const MIN: u32> Day19<MIN> {
         }
         
         let winner = queue.into_iter().map(|mut factory| { factory.work(&b,0); factory}).max_by_key(|factory| factory.states[Material::Geode].stock).unwrap();
-       #[cfg(feature = "debug_printing")] 
-        dbg!(&winner);
+       //#[cfg(feature = "debug_printing")] 
+        dbg!(&winner.states[Material::Geode].stock);
         winner.states[Material::Geode].stock
     }
 
@@ -71,7 +69,7 @@ impl<const MIN: u32> Day19<MIN> {
         let mut moves = vec![None];
 
         for (material, price) in b.prices {
-            if factory.can_buy(material, price) && BarbarianForce::strategize(b, factory, material, price) {
+            if factory.can_buy(material, price) && BarbarianForce::strategize(b, factory, material) {
                 moves.push(Some(material))
                 
             } 
@@ -124,11 +122,11 @@ struct Bruteforce;
 
 trait Strategy
 {
-    fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool;
+    fn strategize(b: &Blueprint, factory: &Factory, material: Material) -> bool;
 }
 
 impl Strategy for Bruteforce{
-    fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool {
+    fn strategize(_b: &Blueprint, _factory: &Factory, _material: Material) -> bool {
         true
     }
 }
@@ -137,19 +135,8 @@ struct BarbarianForce;
 
 impl Strategy for BarbarianForce{
     
-    fn strategize(b: &Blueprint, factory: &Factory, material: Material, price: Price) -> bool {
-        let ore_max = [b.prices[Material::Ore].ore_price, b.prices[Material::Clay].ore_price, b.prices[Material::Obsidian].ore_price, b.prices[Material::Geode].ore_price].into_iter().max().unwrap();
-        let clay_max = b.prices[Material::Obsidian].previous_price.unwrap();
-        let obsidian_max = b.prices[Material::Geode].previous_price.unwrap();
-        let material_max = enum_map!{
-            Material::Ore => ore_max,
-            Material::Clay => clay_max,
-            Material::Obsidian => obsidian_max,
-            Material::Geode => Currency::MAX,
-           
-        };
-        
-        factory.states[material].machines < material_max[material]
+    fn strategize(b: &Blueprint, factory: &Factory, material: Material) -> bool {
+        factory.states[material].machines < b.get_max(material)
     }
 }
 
@@ -223,13 +210,13 @@ impl Factory
             }
             let max_materials = b.get_max(material);
 
-            // if material != Material::Geode && (state.machines >= b.get_max(material) || max_materials.saturating_sub(state.machines).saturating_mul(days_left) <= state.stock) {
-            //     self.states[material].finished = true;
-            //     self.states[material].stock = max_materials;
-            // }
-            // else{
+            if material != Material::Geode && (state.machines >= b.get_max(material) || max_materials.saturating_sub(state.machines).saturating_mul(days_left+1) <= state.stock) {
+                self.states[material].finished = true;
+                self.states[material].stock = max_materials;
+            }
+            else{
                 self.states[material].stock =  state.machines + state.stock
-            // }
+             }
         }    
     }
 
