@@ -210,7 +210,7 @@ impl Factory
             }
             let max_materials = b.get_max(material);
 
-            if material != Material::Geode && (state.machines >= b.get_max(material) || max_materials.saturating_sub(state.machines).saturating_mul(days_left+1) <= state.stock) {
+            if material != Material::Geode && (state.machines >= b.get_max(material) /*|| max_materials.saturating_sub(state.machines).saturating_mul(days_left+1) <= state.stock*/) {
                 self.states[material].finished = true;
                 self.states[material].stock = max_materials;
             }
