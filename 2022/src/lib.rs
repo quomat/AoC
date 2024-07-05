@@ -27,8 +27,8 @@ pub mod utils;
 mod tests {
     const TESTS_FILE_NAME: &str = "test";
     const TESTS_ADDITIONAL_FILE_NAME: &str = "test2";
-    use crate::*;
     use crate::day0::*;
+    use crate::*;
 
     macro_rules! day {
         ($n:tt, $p:tt, $answer:expr) => {
@@ -128,18 +128,27 @@ mod tests {
 
     #[test]
     fn day18_1_easy() {
-        assert_eq!(day18::Day18::solve(day18::Day18::parse("1,1,1\n1,1,2,\n1,2,1")), 14);
+        assert_eq!(
+            day18::Day18::solve(day18::Day18::parse("1,1,1\n1,1,2,\n1,2,1")),
+            14
+        );
     }
     day!(18, 1, 64);
     day!(18, 2, 58);
 
     #[test]
     fn day19_1() {
-        assert_eq!(day19::Day19::<24>::solve_input(TESTS_FILE_NAME, Part::Part1), 33);
+        assert_eq!(
+            day19::Day19::<24>::solve_input(TESTS_FILE_NAME, Part::Part1),
+            33
+        );
     }
 
     #[test]
-    fn day19_2(){
-        assert_eq!(day19::Day19::<32>::solve_input(TESTS_FILE_NAME, Part::Part2),56*62);
+    fn day19_2() {
+        assert_eq!(
+            day19::Day19::<32>::solve_input(TESTS_FILE_NAME, Part::Part2),
+            56 * 62
+        );
     }
 }
